@@ -11,6 +11,14 @@ onStatusChange:function(newStatus){
    this.props.onStatusChange(newStatus);
  }
 },
+/*
+componentWillReceiveProps:function (newProps) {
+  console.log('componentsWillRecieveprops ' + newProps.countdownStatus);
+},
+
+*/
+
+
  render:function () {
  var {countdownStatus}= this.props;
  var renderStartStopButton=()=>{
@@ -19,7 +27,7 @@ onStatusChange:function(newStatus){
   }else if (countdownStatus==='paused') {
   return <button className="button primary" onClick={this.onStatusChange('started')}>Start</button>
   }
- };
+}
 
   return (
     <div className="controls">
