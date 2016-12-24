@@ -26,7 +26,7 @@ var todos=[
   }
 ];
 var todoList=TestUtils.renderIntoDocument(<TodoList todos={todos} />);
-var todosComponents=TestUtils.scryRenderComponentsWithType(todoList,Todo);
+var todosComponents=TestUtils.scryRenderedComponentsWithType(todoList,Todo);
 expect(todosComponents.length).toBe(todos.length);
 });
 
