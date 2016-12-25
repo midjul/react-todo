@@ -109,7 +109,7 @@
 	$(document).foundation();
 
 	// App css
-	__webpack_require__(239);
+	__webpack_require__(240);
 
 	ReactDOM.render(React.createElement(TodoApp, null), document.getElementById('app'));
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
@@ -25475,10 +25475,12 @@
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 	var React = __webpack_require__(8);
-	var TodoList = __webpack_require__(230);
-	var AddTodo = __webpack_require__(232);
-	var TodoSearch = __webpack_require__(233);
-	var uuid = __webpack_require__(234);
+	var uuid = __webpack_require__(230);
+
+	var TodoList = __webpack_require__(235);
+	var AddTodo = __webpack_require__(237);
+	var TodoSearch = __webpack_require__(238);
+	var TodoAPI = __webpack_require__(239);
 
 	var TodoApp = React.createClass({
 	  displayName: 'TodoApp',
@@ -25487,22 +25489,11 @@
 	    return {
 	      showCompleted: false,
 	      searchText: '',
-	      todos: [{ id: uuid(),
-	        text: 'Walk the dog',
-	        completed: false
-	      }, {
-	        id: uuid(),
-	        text: 'Clear the yard',
-	        completed: true
-	      }, { id: uuid(),
-	        text: 'Leave mail on porch',
-	        completed: true
-	      }, {
-	        id: uuid(),
-	        text: 'Play video games',
-	        completed: false
-	      }]
+	      todos: TodoAPI.getTodos()
 	    };
+	  },
+	  componentDidUpdate: function componentDidUpdate() {
+	    TodoAPI.setTodos(this.state.todos);
 	  },
 	  handleSearch: function handleSearch(showCompleted, searchText) {
 	    this.setState({
@@ -25552,159 +25543,8 @@
 /* 230 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-	var React = __webpack_require__(8);
-	var Todo = __webpack_require__(231);
-
-	var TodoList = React.createClass({
-	  displayName: 'TodoList',
-
-	  render: function render() {
-	    var _this = this;
-
-	    var todos = this.props.todos;
-
-	    var renderTodos = function renderTodos() {
-	      return todos.map(function (todo) {
-	        return React.createElement(Todo, _extends({ key: todo.id }, todo, { onToggle: _this.props.onToggle }));
-	      });
-	    };
-	    return React.createElement(
-	      'div',
-	      null,
-	      renderTodos()
-	    );
-	  }
-
-	});
-
-	module.exports = TodoList;
-
-/***/ },
-/* 231 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	var React = __webpack_require__(8);
-
-	var Todo = React.createClass({
-	  displayName: "Todo",
-
-	  render: function render() {
-	    var _this = this;
-
-	    var _props = this.props,
-	        text = _props.text,
-	        id = _props.id,
-	        completed = _props.completed;
-
-	    return React.createElement(
-	      "div",
-	      { onClick: function onClick() {
-	          _this.props.onToggle(id);
-	        } },
-	      React.createElement("input", { type: "checkbox", checked: completed }),
-	      text
-	    );
-	  }
-
-	});
-
-	module.exports = Todo;
-
-/***/ },
-/* 232 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var React = __webpack_require__(8);
-
-	var AddTodo = React.createClass({
-	  displayName: 'AddTodo',
-
-	  handleSubmit: function handleSubmit(e) {
-	    e.preventDefault();
-	    var todoText = this.refs.todoText.value;
-	    if (todoText.length > 0) {
-	      this.refs.todoText.value = '';
-	      this.props.onAddTodo(todoText);
-	    } else {
-	      this.refs.todoText.focus();
-	    }
-	  },
-	  render: function render() {
-	    return React.createElement(
-	      'div',
-	      null,
-	      React.createElement(
-	        'form',
-	        { className: 'AddTodoForm', onSubmit: this.handleSubmit },
-	        React.createElement('input', { type: 'text', ref: 'todoText', placeholder: 'What do you need to do?' }),
-	        React.createElement(
-	          'button',
-	          { className: 'button expanded' },
-	          'Add Todo'
-	        )
-	      )
-	    );
-	  }
-	});
-
-	module.exports = AddTodo;
-
-/***/ },
-/* 233 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	var React = __webpack_require__(8);
-
-	var TodoSearch = React.createClass({
-	  displayName: "TodoSearch",
-
-	  handleSearch: function handleSearch() {
-	    var showCompleted = this.refs.showCompleted.checked;
-	    var searchText = this.refs.searchText.value;
-
-	    this.props.onSearch(showCompleted, searchText);
-	  },
-	  render: function render() {
-	    return React.createElement(
-	      "div",
-	      null,
-	      React.createElement(
-	        "div",
-	        null,
-	        React.createElement("input", { type: "search", ref: "searchText", placeholder: "Search todos", onChange: this.handleSearch })
-	      ),
-	      React.createElement(
-	        "div",
-	        null,
-	        React.createElement(
-	          "label",
-	          null,
-	          React.createElement("input", { type: "checkbox", ref: "showCompleted", onChange: this.handleSearch }),
-	          "Sow completed todos"
-	        )
-	      )
-	    );
-	  }
-	});
-
-	module.exports = TodoSearch;
-
-/***/ },
-/* 234 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var v1 = __webpack_require__(235);
-	var v4 = __webpack_require__(238);
+	var v1 = __webpack_require__(231);
+	var v4 = __webpack_require__(234);
 
 	var uuid = v4;
 	uuid.v1 = v1;
@@ -25714,14 +25554,14 @@
 
 
 /***/ },
-/* 235 */
+/* 231 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Unique ID creation requires a high quality random # generator.  We feature
 	// detect to determine the best RNG source, normalizing to a function that
 	// returns 128-bits of randomness, since that's what's usually required
-	var rng = __webpack_require__(236);
-	var bytesToUuid = __webpack_require__(237);
+	var rng = __webpack_require__(232);
+	var bytesToUuid = __webpack_require__(233);
 
 	// **`v1()` - Generate time-based UUID**
 	//
@@ -25823,7 +25663,7 @@
 
 
 /***/ },
-/* 236 */
+/* 232 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {// Unique ID creation requires a high quality random # generator.  In the
@@ -25863,7 +25703,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 237 */
+/* 233 */
 /***/ function(module, exports) {
 
 	/**
@@ -25892,11 +25732,11 @@
 
 
 /***/ },
-/* 238 */
+/* 234 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var rng = __webpack_require__(236);
-	var bytesToUuid = __webpack_require__(237);
+	var rng = __webpack_require__(232);
+	var bytesToUuid = __webpack_require__(233);
 
 	function v4(options, buf, offset) {
 	  var i = buf && offset || 0;
@@ -25927,16 +25767,193 @@
 
 
 /***/ },
+/* 235 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+	var React = __webpack_require__(8);
+	var Todo = __webpack_require__(236);
+
+	var TodoList = React.createClass({
+	  displayName: 'TodoList',
+
+	  render: function render() {
+	    var _this = this;
+
+	    var todos = this.props.todos;
+
+	    var renderTodos = function renderTodos() {
+	      return todos.map(function (todo) {
+	        return React.createElement(Todo, _extends({ key: todo.id }, todo, { onToggle: _this.props.onToggle }));
+	      });
+	    };
+	    return React.createElement(
+	      'div',
+	      null,
+	      renderTodos()
+	    );
+	  }
+
+	});
+
+	module.exports = TodoList;
+
+/***/ },
+/* 236 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var React = __webpack_require__(8);
+
+	var Todo = React.createClass({
+	  displayName: "Todo",
+
+	  render: function render() {
+	    var _this = this;
+
+	    var _props = this.props,
+	        text = _props.text,
+	        id = _props.id,
+	        completed = _props.completed;
+
+	    return React.createElement(
+	      "div",
+	      { onClick: function onClick() {
+	          _this.props.onToggle(id);
+	        } },
+	      React.createElement("input", { type: "checkbox", checked: completed }),
+	      text
+	    );
+	  }
+
+	});
+
+	module.exports = Todo;
+
+/***/ },
+/* 237 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var React = __webpack_require__(8);
+
+	var AddTodo = React.createClass({
+	  displayName: 'AddTodo',
+
+	  handleSubmit: function handleSubmit(e) {
+	    e.preventDefault();
+	    var todoText = this.refs.todoText.value;
+	    if (todoText.length > 0) {
+	      this.refs.todoText.value = '';
+	      this.props.onAddTodo(todoText);
+	    } else {
+	      this.refs.todoText.focus();
+	    }
+	  },
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      null,
+	      React.createElement(
+	        'form',
+	        { className: 'AddTodoForm', onSubmit: this.handleSubmit },
+	        React.createElement('input', { type: 'text', ref: 'todoText', placeholder: 'What do you need to do?' }),
+	        React.createElement(
+	          'button',
+	          { className: 'button expanded' },
+	          'Add Todo'
+	        )
+	      )
+	    );
+	  }
+	});
+
+	module.exports = AddTodo;
+
+/***/ },
+/* 238 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var React = __webpack_require__(8);
+
+	var TodoSearch = React.createClass({
+	  displayName: "TodoSearch",
+
+	  handleSearch: function handleSearch() {
+	    var showCompleted = this.refs.showCompleted.checked;
+	    var searchText = this.refs.searchText.value;
+
+	    this.props.onSearch(showCompleted, searchText);
+	  },
+	  render: function render() {
+	    return React.createElement(
+	      "div",
+	      null,
+	      React.createElement(
+	        "div",
+	        null,
+	        React.createElement("input", { type: "search", ref: "searchText", placeholder: "Search todos", onChange: this.handleSearch })
+	      ),
+	      React.createElement(
+	        "div",
+	        null,
+	        React.createElement(
+	          "label",
+	          null,
+	          React.createElement("input", { type: "checkbox", ref: "showCompleted", onChange: this.handleSearch }),
+	          "Sow completed todos"
+	        )
+	      )
+	    );
+	  }
+	});
+
+	module.exports = TodoSearch;
+
+/***/ },
 /* 239 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var $ = __webpack_require__(7);
+	module.exports = {
+	  setTodos: function setTodos(todos) {
+	    if ($.isArray(todos)) {
+	      localStorage.setItem('todos', JSON.stringify(todos));
+	      return todos;
+	    }
+	  },
+	  getTodos: function getTodos() {
+	    var stringTodos = localStorage.getItem('todos');
+	    var todos = [];
+
+	    try {
+	      todos = JSON.parse(stringTodos);
+	    } catch (e) {}
+
+	    return $.isArray(todos) ? todos : [];
+	  }
+	};
+
+/***/ },
+/* 240 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(240);
+	var content = __webpack_require__(241);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(242)(content, {});
+	var update = __webpack_require__(243)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -25953,10 +25970,10 @@
 	}
 
 /***/ },
-/* 240 */
+/* 241 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(241)();
+	exports = module.exports = __webpack_require__(242)();
 	// imports
 
 
@@ -25967,7 +25984,7 @@
 
 
 /***/ },
-/* 241 */
+/* 242 */
 /***/ function(module, exports) {
 
 	/*
@@ -26023,7 +26040,7 @@
 
 
 /***/ },
-/* 242 */
+/* 243 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
