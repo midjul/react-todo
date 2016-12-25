@@ -53,4 +53,59 @@ describe('TodoAPI', ()=>{
      });
 
   });
+
+
+ describe('filterTodos', ()=>{
+  var todos=[
+    {id:1,
+      text:'Some text',
+      completed:true
+    },
+    {id:2,
+      text:'Some',
+      completed:false
+    },
+    {id:3,
+      text:'text',
+      completed:true
+    }
+  ];
+  it('should return all items if showCompleted is true', ()=>{
+   var filteredTodos=TodoAPI.filterTodos(todos, true, '');
+
+   expect(filteredTodos.length).toBe(3);
+  });
+
+  it('should return none-completed todos when showCompleted is false', ()=>{
+   var filteredTodos=TodoAPI.filterTodos(todos, false, '');
+
+   expect(filteredTodos.length).toBe(1);
+  });
+
+  it('should sort by completed status', ()=>{
+  var filteredTodos=TodoAPI.filterTodos(todos, true, '');
+  expect(filteredTodos[0].completed).toBe(false);
+  });
+
+it('should return all todos if searchText empty', ()=>{
+ var filteredTodos=TodoAPI.filterTodos(todos, true, '');
+ expect(filteredTodos.length).toBe(todos.length);
+});
+
+it('should return only relevant todos', ()=>{
+  var seaTxt='text';
+ var filteredTodos=TodoAPI.filterTodos(todos, true, seaTxt);
+var rez=[];
+for(var i=0;i<todos.length; i++){
+  var item=todos[i].text.toLowerCase();
+  if(item.indexOf(seaTxt)>-1){
+    rez.push(item);
+  }
+}
+expect(filteredTodos.length).toBe(rez.length);
+
+});
+
+ });
+
 });
