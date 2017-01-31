@@ -36,15 +36,22 @@ switch (action.type) {
     }
   ];
   case 'TOGGLE_TODO':
-var st1=JSON.parse(JSON.stringify(state));
-  var updatedTodos=st1.map(function (todo) {
+
+return state.map(function (todo) {
  if (todo.id===action.id) {
-  todo.completed=!todo.completed;
-  todo.completedAt=todo.completed? moment().unix():undefined;
- }
-   return todo ;
+var nextCompleted= !todo.completed;
+return{
+  ...todo,
+  completed:nextCompleted,
+  completedAt:nextCompleted ? moment().unix():undefined
+  
+};  
+}else {
+  return todo;
+}
+  
   });
-return updatedTodos;
+
   default:
   return state;
 }
