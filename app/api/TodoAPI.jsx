@@ -13,10 +13,10 @@ module.exports={
 
      try {
        todos=JSON.parse(stringTodos);
+      
      } catch (e) {
 
      }
-
 return $.isArray(todos) ? todos:[];
 
 

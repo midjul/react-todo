@@ -31,7 +31,7 @@ switch (action.type) {
       id:uuid(),
       text:action.text,
       completed:false,
-      cratedAt:moment().unix(),
+      createdAt:moment().unix(),
       completedAt:undefined
     }
   ];
@@ -43,7 +43,7 @@ var nextCompleted= !todo.completed;
 return{
   ...todo,
   completed:nextCompleted,
-  completedAt:nextCompleted ? moment().unix():undefined
+  completedAt:nextCompleted? moment().unix():undefined
   
 };  
 }else {
