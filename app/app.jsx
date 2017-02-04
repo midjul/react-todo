@@ -5,6 +5,8 @@ var TodoApp=require('TodoApp');
 var {Provider} =require('react-redux');
 var actions=require('actions');
 
+// import './../playground/firebase/index';
+
 var store=require('configureStore').configure();
 var TodoAPI= require('TodoAPI');
 console.log(store);
