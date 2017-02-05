@@ -112,8 +112,8 @@
 
 	// import './../playground/firebase/index';
 
-	var store = __webpack_require__(387).configure();
-	var TodoAPI = __webpack_require__(379);
+	var store = __webpack_require__(394).configure();
+	var TodoAPI = __webpack_require__(386);
 	console.log(store);
 	store.subscribe(function () {
 	  var state = store.getState();
@@ -129,7 +129,7 @@
 	$(document).foundation();
 
 	// App css
-	__webpack_require__(390);
+	__webpack_require__(456);
 
 	ReactDOM.render(React.createElement(
 	  Provider,
@@ -25500,18 +25500,18 @@
 
 	var _TodoList2 = _interopRequireDefault(_TodoList);
 
-	var _AddTodo = __webpack_require__(380);
+	var _AddTodo = __webpack_require__(387);
 
 	var _AddTodo2 = _interopRequireDefault(_AddTodo);
 
-	var _TodoSearch = __webpack_require__(381);
+	var _TodoSearch = __webpack_require__(388);
 
 	var _TodoSearch2 = _interopRequireDefault(_TodoSearch);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var React = __webpack_require__(8);
-	var uuid = __webpack_require__(382);
+	var uuid = __webpack_require__(389);
 	var moment = __webpack_require__(232);
 
 	// var TodoList=require('TodoList');
@@ -25575,7 +25575,7 @@
 	var _require = __webpack_require__(343),
 	    connect = _require.connect;
 
-	var TodoAPI = __webpack_require__(379);
+	var TodoAPI = __webpack_require__(386);
 
 	var TodoList = exports.TodoList = React.createClass({
 	  displayName: 'TodoList',
@@ -25656,7 +25656,7 @@
 	      'div',
 	      { className: todoClassName, onClick: function onClick() {
 	          // this.props.onToggle(id);
-	          dispatch(actions.toggleTodo(id));
+	          dispatch(actions.startToggleTodo(id, !completed));
 	        } },
 	      React.createElement(
 	        'div',
@@ -42690,11 +42690,11 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.toggleTodo = exports.addTodos = exports.toggleShowCompleted = exports.startAddTodo = exports.addTodo = exports.setSearchText = undefined;
+	exports.startToggleTodo = exports.updateTodo = exports.addTodos = exports.toggleShowCompleted = exports.startAddTodo = exports.addTodo = exports.setSearchText = undefined;
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	var _firebase = __webpack_require__(394);
+	var _firebase = __webpack_require__(379);
 
 	var _firebase2 = _interopRequireDefault(_firebase);
 
@@ -42749,903 +42749,30 @@
 	  };
 	};
 
-	var toggleTodo = exports.toggleTodo = function toggleTodo(id) {
+	var updateTodo = exports.updateTodo = function updateTodo(id, updates) {
 	  return {
-	    type: 'TOGGLE_TODO',
-	    id: id
+	    type: 'UPDATE_TODO',
+	    id: id,
+	    updates: updates
+	  };
+	};
+
+	var startToggleTodo = exports.startToggleTodo = function startToggleTodo(id, completed) {
+	  return function (dispatch, getState) {
+	    var todoRef = _firebase.firebaseRef.child('todos/' + id);
+	    var updates = {
+	      completed: completed,
+	      completedAt: completed ? (0, _moment2.default)().unix() : null
+	    };
+
+	    return todoRef.update(updates).then(function () {
+	      dispatch(updateTodo(id, updates));
+	    });
 	  };
 	};
 
 /***/ },
 /* 379 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var $ = __webpack_require__(7);
-	module.exports = {
-	  setTodos: function setTodos(todos) {
-	    if ($.isArray(todos)) {
-	      localStorage.setItem('todos', JSON.stringify(todos));
-	      return todos;
-	    }
-	  },
-
-	  getTodos: function getTodos() {
-	    var stringTodos = localStorage.getItem('todos');
-	    var todos = [];
-
-	    try {
-	      todos = JSON.parse(stringTodos);
-	    } catch (e) {}
-	    return $.isArray(todos) ? todos : [];
-	  },
-	  filterTodos: function filterTodos(todos, showCompleted, searchText) {
-	    var filteredTodos = todos;
-	    //filter by showCompleted
-	    filteredTodos = filteredTodos.filter(function (todo) {
-	      return !todo.completed || showCompleted;
-	    });
-
-	    //Filter by searchText
-
-	    filteredTodos = filteredTodos.filter(function (todo) {
-	      var doo = todo.text.toLowerCase();
-	      if (searchText !== "" && doo.indexOf(searchText) > -1) {
-	        return todo;
-	      } else if (searchText === "") {
-	        return todo;
-	      }
-	    });
-
-	    //sort todos with non-completed first
-	    filteredTodos.sort(function (a, b) {
-	      if (!a.completed && b.completed) {
-	        return -1;
-	      } else if (a.completed && !b.completed) {
-	        return 1;
-	      } else {
-	        return 0;
-	      }
-	    });
-
-	    return filteredTodos;
-	  }
-	};
-
-/***/ },
-/* 380 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	var React = __webpack_require__(8);
-
-	var _require = __webpack_require__(343),
-	    connect = _require.connect;
-
-	var actions = __webpack_require__(378);
-
-	var AddTodo = exports.AddTodo = React.createClass({
-	  displayName: 'AddTodo',
-
-	  handleSubmit: function handleSubmit(e) {
-	    e.preventDefault();
-	    var dispatch = this.props.dispatch;
-
-	    var todoText = this.refs.todoText.value;
-	    if (todoText.length > 0) {
-	      this.refs.todoText.value = '';
-	      dispatch(actions.startAddTodo(todoText));
-	    } else {
-	      this.refs.todoText.focus();
-	    }
-	  },
-	  render: function render() {
-	    return React.createElement(
-	      'div',
-	      { className: 'container__footer' },
-	      React.createElement(
-	        'form',
-	        { className: 'AddTodoForm', onSubmit: this.handleSubmit },
-	        React.createElement('input', { type: 'text', ref: 'todoText', placeholder: 'What do you need to do?' }),
-	        React.createElement(
-	          'button',
-	          { className: 'button expanded' },
-	          'Add Todo'
-	        )
-	      )
-	    );
-	  }
-	});
-
-	exports.default = connect()(AddTodo);
-
-/***/ },
-/* 381 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	var React = __webpack_require__(8);
-
-	var _require = __webpack_require__(343),
-	    connect = _require.connect;
-
-	var actions = __webpack_require__(378);
-
-	var TodoSearch = exports.TodoSearch = React.createClass({
-	  displayName: 'TodoSearch',
-
-	  render: function render() {
-	    var _this = this;
-
-	    var _props = this.props,
-	        dispatch = _props.dispatch,
-	        showCompleted = _props.showCompleted,
-	        searchText = _props.searchText;
-
-
-	    return React.createElement(
-	      'div',
-	      { className: 'container__header' },
-	      React.createElement(
-	        'div',
-	        null,
-	        React.createElement('input', { type: 'search', ref: 'searchText', value: searchText, placeholder: 'Search todos', onChange: function onChange() {
-	            var searchText = _this.refs.searchText.value;
-
-	            dispatch(actions.setSearchText(searchText));
-	          } })
-	      ),
-	      React.createElement(
-	        'div',
-	        null,
-	        React.createElement(
-	          'label',
-	          null,
-	          React.createElement('input', { type: 'checkbox', ref: 'showCompleted', checked: showCompleted, onChange: function onChange() {
-	              dispatch(actions.toggleShowCompleted());
-	            } }),
-	          'Sow completed todos'
-	        )
-	      )
-	    );
-	  }
-	});
-
-	exports.default = connect(function (state) {
-	  return {
-	    showCompleted: state.showCompleted,
-	    searchText: state.searchText
-	  };
-	})(TodoSearch);
-
-/***/ },
-/* 382 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var v1 = __webpack_require__(383);
-	var v4 = __webpack_require__(386);
-
-	var uuid = v4;
-	uuid.v1 = v1;
-	uuid.v4 = v4;
-
-	module.exports = uuid;
-
-
-/***/ },
-/* 383 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// Unique ID creation requires a high quality random # generator.  We feature
-	// detect to determine the best RNG source, normalizing to a function that
-	// returns 128-bits of randomness, since that's what's usually required
-	var rng = __webpack_require__(384);
-	var bytesToUuid = __webpack_require__(385);
-
-	// **`v1()` - Generate time-based UUID**
-	//
-	// Inspired by https://github.com/LiosK/UUID.js
-	// and http://docs.python.org/library/uuid.html
-
-	// random #'s we need to init node and clockseq
-	var _seedBytes = rng();
-
-	// Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-	var _nodeId = [
-	  _seedBytes[0] | 0x01,
-	  _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
-	];
-
-	// Per 4.2.2, randomize (14 bit) clockseq
-	var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
-
-	// Previous uuid creation time
-	var _lastMSecs = 0, _lastNSecs = 0;
-
-	// See https://github.com/broofa/node-uuid for API details
-	function v1(options, buf, offset) {
-	  var i = buf && offset || 0;
-	  var b = buf || [];
-
-	  options = options || {};
-
-	  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
-
-	  // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-	  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-	  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-	  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-	  var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
-
-	  // Per 4.2.1.2, use count of uuid's generated during the current clock
-	  // cycle to simulate higher resolution clock
-	  var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
-
-	  // Time since last uuid creation (in msecs)
-	  var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs)/10000;
-
-	  // Per 4.2.1.2, Bump clockseq on clock regression
-	  if (dt < 0 && options.clockseq === undefined) {
-	    clockseq = clockseq + 1 & 0x3fff;
-	  }
-
-	  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-	  // time interval
-	  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-	    nsecs = 0;
-	  }
-
-	  // Per 4.2.1.2 Throw error if too many uuids are requested
-	  if (nsecs >= 10000) {
-	    throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
-	  }
-
-	  _lastMSecs = msecs;
-	  _lastNSecs = nsecs;
-	  _clockseq = clockseq;
-
-	  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-	  msecs += 12219292800000;
-
-	  // `time_low`
-	  var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
-	  b[i++] = tl >>> 24 & 0xff;
-	  b[i++] = tl >>> 16 & 0xff;
-	  b[i++] = tl >>> 8 & 0xff;
-	  b[i++] = tl & 0xff;
-
-	  // `time_mid`
-	  var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
-	  b[i++] = tmh >>> 8 & 0xff;
-	  b[i++] = tmh & 0xff;
-
-	  // `time_high_and_version`
-	  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
-	  b[i++] = tmh >>> 16 & 0xff;
-
-	  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-	  b[i++] = clockseq >>> 8 | 0x80;
-
-	  // `clock_seq_low`
-	  b[i++] = clockseq & 0xff;
-
-	  // `node`
-	  var node = options.node || _nodeId;
-	  for (var n = 0; n < 6; ++n) {
-	    b[i + n] = node[n];
-	  }
-
-	  return buf ? buf : bytesToUuid(b);
-	}
-
-	module.exports = v1;
-
-
-/***/ },
-/* 384 */
-/***/ function(module, exports) {
-
-	/* WEBPACK VAR INJECTION */(function(global) {// Unique ID creation requires a high quality random # generator.  In the
-	// browser this is a little complicated due to unknown quality of Math.random()
-	// and inconsistent support for the `crypto` API.  We do the best we can via
-	// feature-detection
-	var rng;
-
-	var crypto = global.crypto || global.msCrypto; // for IE 11
-	if (crypto && crypto.getRandomValues) {
-	  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
-	  var rnds8 = new Uint8Array(16);
-	  rng = function whatwgRNG() {
-	    crypto.getRandomValues(rnds8);
-	    return rnds8;
-	  };
-	}
-
-	if (!rng) {
-	  // Math.random()-based (RNG)
-	  //
-	  // If all else fails, use Math.random().  It's fast, but is of unspecified
-	  // quality.
-	  var  rnds = new Array(16);
-	  rng = function() {
-	    for (var i = 0, r; i < 16; i++) {
-	      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
-	      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
-	    }
-
-	    return rnds;
-	  };
-	}
-
-	module.exports = rng;
-
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
-
-/***/ },
-/* 385 */
-/***/ function(module, exports) {
-
-	/**
-	 * Convert array of 16 byte values to UUID string format of the form:
-	 * XXXXXXXX-XXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-	 */
-	var byteToHex = [];
-	for (var i = 0; i < 256; ++i) {
-	  byteToHex[i] = (i + 0x100).toString(16).substr(1);
-	}
-
-	function bytesToUuid(buf, offset) {
-	  var i = offset || 0;
-	  var bth = byteToHex;
-	  return  bth[buf[i++]] + bth[buf[i++]] +
-	          bth[buf[i++]] + bth[buf[i++]] + '-' +
-	          bth[buf[i++]] + bth[buf[i++]] + '-' +
-	          bth[buf[i++]] + bth[buf[i++]] + '-' +
-	          bth[buf[i++]] + bth[buf[i++]] + '-' +
-	          bth[buf[i++]] + bth[buf[i++]] +
-	          bth[buf[i++]] + bth[buf[i++]] +
-	          bth[buf[i++]] + bth[buf[i++]];
-	}
-
-	module.exports = bytesToUuid;
-
-
-/***/ },
-/* 386 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var rng = __webpack_require__(384);
-	var bytesToUuid = __webpack_require__(385);
-
-	function v4(options, buf, offset) {
-	  var i = buf && offset || 0;
-
-	  if (typeof(options) == 'string') {
-	    buf = options == 'binary' ? new Array(16) : null;
-	    options = null;
-	  }
-	  options = options || {};
-
-	  var rnds = options.random || (options.rng || rng)();
-
-	  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-	  rnds[6] = (rnds[6] & 0x0f) | 0x40;
-	  rnds[8] = (rnds[8] & 0x3f) | 0x80;
-
-	  // Copy bytes to buffer, if provided
-	  if (buf) {
-	    for (var ii = 0; ii < 16; ++ii) {
-	      buf[i + ii] = rnds[ii];
-	    }
-	  }
-
-	  return buf || bytesToUuid(rnds);
-	}
-
-	module.exports = v4;
-
-
-/***/ },
-/* 387 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.configure = undefined;
-
-	var _redux = __webpack_require__(352);
-
-	var redux = _interopRequireWildcard(_redux);
-
-	var _reduxThunk = __webpack_require__(388);
-
-	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
-
-	var _reducers = __webpack_require__(389);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	var configure = exports.configure = function configure() {
-	  var initialState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-	  var reducer = redux.combineReducers({
-	    searchText: _reducers.searchTextReducer,
-	    showCompleted: _reducers.showCompletedReducer,
-	    todos: _reducers.todosReducer
-	  });
-
-	  var store = redux.createStore(reducer, initialState, redux.compose(redux.applyMiddleware(_reduxThunk2.default), window.devToolsExtension ? window.devToolsExtension() : function (f) {
-	    return f;
-	  }));
-
-	  return store;
-	};
-
-/***/ },
-/* 388 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	exports.__esModule = true;
-	function createThunkMiddleware(extraArgument) {
-	  return function (_ref) {
-	    var dispatch = _ref.dispatch,
-	        getState = _ref.getState;
-	    return function (next) {
-	      return function (action) {
-	        if (typeof action === 'function') {
-	          return action(dispatch, getState, extraArgument);
-	        }
-
-	        return next(action);
-	      };
-	    };
-	  };
-	}
-
-	var thunk = createThunkMiddleware();
-	thunk.withExtraArgument = createThunkMiddleware;
-
-	exports['default'] = thunk;
-
-/***/ },
-/* 389 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-	var uuid = __webpack_require__(401);
-	var moment = __webpack_require__(232);
-
-	var searchTextReducer = exports.searchTextReducer = function searchTextReducer() {
-	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-	  var action = arguments[1];
-
-	  switch (action.type) {
-	    case 'SET_SEARCH_TEXT':
-	      return action.searchText;
-	    default:
-	      return state;
-	  };
-	};
-
-	var showCompletedReducer = exports.showCompletedReducer = function showCompletedReducer() {
-	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-	  var action = arguments[1];
-
-	  switch (action.type) {
-	    case 'TOGGLE_SHOW_COMPLETED':
-	      return !state;
-
-	    default:
-	      return state;
-
-	  };
-	};
-
-	var todosReducer = exports.todosReducer = function todosReducer() {
-	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-	  var action = arguments[1];
-
-	  switch (action.type) {
-	    case 'ADD_TODO':
-	      return [].concat(_toConsumableArray(state), [action.todo]);
-	    case 'TOGGLE_TODO':
-
-	      return state.map(function (todo) {
-	        if (todo.id === action.id) {
-	          var nextCompleted = !todo.completed;
-	          return _extends({}, todo, {
-	            completed: nextCompleted,
-	            completedAt: nextCompleted ? moment().unix() : undefined
-
-	          });
-	        } else {
-	          return todo;
-	        }
-	      });
-
-	    case 'ADD_TODOS':
-	      return [].concat(_toConsumableArray(state), _toConsumableArray(action.todos));
-
-	    default:
-	      return state;
-	  }
-	};
-
-/***/ },
-/* 390 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// style-loader: Adds some css to the DOM by adding a <style> tag
-
-	// load the styles
-	var content = __webpack_require__(391);
-	if(typeof content === 'string') content = [[module.id, content, '']];
-	// add the styles to the DOM
-	var update = __webpack_require__(393)(content, {});
-	if(content.locals) module.exports = content.locals;
-	// Hot Module Replacement
-	if(false) {
-		// When the styles change, update the <style> tags
-		if(!content.locals) {
-			module.hot.accept("!!./../../node_modules/css-loader/index.js!./../../node_modules/sass-loader/index.js!./app.scss", function() {
-				var newContent = require("!!./../../node_modules/css-loader/index.js!./../../node_modules/sass-loader/index.js!./app.scss");
-				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-				update(newContent);
-			});
-		}
-		// When the module is disposed, remove the <style> tags
-		module.hot.dispose(function() { update(); });
-	}
-
-/***/ },
-/* 391 */
-/***/ function(module, exports, __webpack_require__) {
-
-	exports = module.exports = __webpack_require__(392)();
-	// imports
-
-
-	// module
-	exports.push([module.id, "@charset \"UTF-8\";\n/**\n * Foundation for Sites by ZURB\n * Version 6.3.0\n * foundation.zurb.com\n * Licensed under MIT Open Source\n */\n/*! normalize-scss | MIT/GPLv2 License | bit.ly/normalize-scss */\n/* Document\n       ========================================================================== */\n/**\n     * 1. Change the default font family in all browsers (opinionated).\n     * 2. Correct the line height in all browsers.\n     * 3. Prevent adjustments of font size after orientation changes in\n     *    IE on Windows Phone and in iOS.\n     */\nhtml {\n  font-family: sans-serif;\n  /* 1 */\n  line-height: 1.15;\n  /* 2 */\n  -ms-text-size-adjust: 100%;\n  /* 3 */\n  -webkit-text-size-adjust: 100%;\n  /* 3 */ }\n\n/* Sections\n       ========================================================================== */\n/**\n     * Remove the margin in all browsers (opinionated).\n     */\nbody {\n  margin: 0; }\n\n/**\n     * Add the correct display in IE 9-.\n     */\narticle,\naside,\nfooter,\nheader,\nnav,\nsection {\n  display: block; }\n\n/**\n     * Correct the font size and margin on `h1` elements within `section` and\n     * `article` contexts in Chrome, Firefox, and Safari.\n     */\nh1 {\n  font-size: 2em;\n  margin: 0.67em 0; }\n\n/* Grouping content\n       ========================================================================== */\n/**\n     * Add the correct display in IE 9-.\n     */\nfigcaption,\nfigure {\n  display: block; }\n\n/**\n     * Add the correct margin in IE 8.\n     */\nfigure {\n  margin: 1em 40px; }\n\n/**\n     * 1. Add the correct box sizing in Firefox.\n     * 2. Show the overflow in Edge and IE.\n     */\nhr {\n  box-sizing: content-box;\n  /* 1 */\n  height: 0;\n  /* 1 */\n  overflow: visible;\n  /* 2 */ }\n\n/**\n     * Add the correct display in IE.\n     */\nmain {\n  display: block; }\n\n/**\n     * 1. Correct the inheritance and scaling of font size in all browsers.\n     * 2. Correct the odd `em` font sizing in all browsers.\n     */\npre {\n  font-family: monospace, monospace;\n  /* 1 */\n  font-size: 1em;\n  /* 2 */ }\n\n/* Links\n       ========================================================================== */\n/**\n     * 1. Remove the gray background on active links in IE 10.\n     * 2. Remove gaps in links underline in iOS 8+ and Safari 8+.\n     */\na {\n  background-color: transparent;\n  /* 1 */\n  -webkit-text-decoration-skip: objects;\n  /* 2 */ }\n\n/**\n     * Remove the outline on focused links when they are also active or hovered\n     * in all browsers (opinionated).\n     */\na:active,\na:hover {\n  outline-width: 0; }\n\n/* Text-level semantics\n       ========================================================================== */\n/**\n     * 1. Remove the bottom border in Firefox 39-.\n     * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.\n     */\nabbr[title] {\n  border-bottom: none;\n  /* 1 */\n  text-decoration: underline;\n  /* 2 */\n  text-decoration: underline dotted;\n  /* 2 */ }\n\n/**\n     * Prevent the duplicate application of `bolder` by the next rule in Safari 6.\n     */\nb,\nstrong {\n  font-weight: inherit; }\n\n/**\n     * Add the correct font weight in Chrome, Edge, and Safari.\n     */\nb,\nstrong {\n  font-weight: bolder; }\n\n/**\n     * 1. Correct the inheritance and scaling of font size in all browsers.\n     * 2. Correct the odd `em` font sizing in all browsers.\n     */\ncode,\nkbd,\nsamp {\n  font-family: monospace, monospace;\n  /* 1 */\n  font-size: 1em;\n  /* 2 */ }\n\n/**\n     * Add the correct font style in Android 4.3-.\n     */\ndfn {\n  font-style: italic; }\n\n/**\n     * Add the correct background and color in IE 9-.\n     */\nmark {\n  background-color: #ff0;\n  color: #000; }\n\n/**\n     * Add the correct font size in all browsers.\n     */\nsmall {\n  font-size: 80%; }\n\n/**\n     * Prevent `sub` and `sup` elements from affecting the line height in\n     * all browsers.\n     */\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline; }\n\nsub {\n  bottom: -0.25em; }\n\nsup {\n  top: -0.5em; }\n\n/* Embedded content\n       ========================================================================== */\n/**\n     * Add the correct display in IE 9-.\n     */\naudio,\nvideo {\n  display: inline-block; }\n\n/**\n     * Add the correct display in iOS 4-7.\n     */\naudio:not([controls]) {\n  display: none;\n  height: 0; }\n\n/**\n     * Remove the border on images inside links in IE 10-.\n     */\nimg {\n  border-style: none; }\n\n/**\n     * Hide the overflow in IE.\n     */\nsvg:not(:root) {\n  overflow: hidden; }\n\n/* Forms\n       ========================================================================== */\n/**\n     * 1. Change the font styles in all browsers (opinionated).\n     * 2. Remove the margin in Firefox and Safari.\n     */\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  font-family: sans-serif;\n  /* 1 */\n  font-size: 100%;\n  /* 1 */\n  line-height: 1.15;\n  /* 1 */\n  margin: 0;\n  /* 2 */ }\n\n/**\n     * Show the overflow in IE.\n     */\nbutton {\n  overflow: visible; }\n\n/**\n     * Remove the inheritance of text transform in Edge, Firefox, and IE.\n     * 1. Remove the inheritance of text transform in Firefox.\n     */\nbutton,\nselect {\n  /* 1 */\n  text-transform: none; }\n\n/**\n     * 1. Prevent a WebKit bug where (2) destroys native `audio` and `video`\n     *    controls in Android 4.\n     * 2. Correct the inability to style clickable types in iOS and Safari.\n     */\nbutton,\nhtml [type=\"button\"],\n[type=\"reset\"],\n[type=\"submit\"] {\n  -webkit-appearance: button;\n  /* 2 */ }\n\nbutton,\n[type=\"button\"],\n[type=\"reset\"],\n[type=\"submit\"] {\n  /**\n       * Remove the inner border and padding in Firefox.\n       */\n  /**\n       * Restore the focus styles unset by the previous rule.\n       */ }\n  button::-moz-focus-inner,\n  [type=\"button\"]::-moz-focus-inner,\n  [type=\"reset\"]::-moz-focus-inner,\n  [type=\"submit\"]::-moz-focus-inner {\n    border-style: none;\n    padding: 0; }\n  button:-moz-focusring,\n  [type=\"button\"]:-moz-focusring,\n  [type=\"reset\"]:-moz-focusring,\n  [type=\"submit\"]:-moz-focusring {\n    outline: 1px dotted ButtonText; }\n\n/**\n     * Show the overflow in Edge.\n     */\ninput {\n  overflow: visible; }\n\n/**\n     * 1. Add the correct box sizing in IE 10-.\n     * 2. Remove the padding in IE 10-.\n     */\n[type=\"checkbox\"],\n[type=\"radio\"] {\n  box-sizing: border-box;\n  /* 1 */\n  padding: 0;\n  /* 2 */ }\n\n/**\n     * Correct the cursor style of increment and decrement buttons in Chrome.\n     */\n[type=\"number\"]::-webkit-inner-spin-button,\n[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto; }\n\n/**\n     * 1. Correct the odd appearance in Chrome and Safari.\n     * 2. Correct the outline style in Safari.\n     */\n[type=\"search\"] {\n  -webkit-appearance: textfield;\n  /* 1 */\n  outline-offset: -2px;\n  /* 2 */\n  /**\n       * Remove the inner padding and cancel buttons in Chrome and Safari on macOS.\n       */ }\n  [type=\"search\"]::-webkit-search-cancel-button, [type=\"search\"]::-webkit-search-decoration {\n    -webkit-appearance: none; }\n\n/**\n     * 1. Correct the inability to style clickable types in iOS and Safari.\n     * 2. Change font properties to `inherit` in Safari.\n     */\n::-webkit-file-upload-button {\n  -webkit-appearance: button;\n  /* 1 */\n  font: inherit;\n  /* 2 */ }\n\n/**\n     * Change the border, margin, and padding in all browsers (opinionated).\n     */\nfieldset {\n  border: 1px solid #c0c0c0;\n  margin: 0 2px;\n  padding: 0.35em 0.625em 0.75em; }\n\n/**\n     * 1. Correct the text wrapping in Edge and IE.\n     * 2. Correct the color inheritance from `fieldset` elements in IE.\n     * 3. Remove the padding so developers are not caught out when they zero out\n     *    `fieldset` elements in all browsers.\n     */\nlegend {\n  box-sizing: border-box;\n  /* 1 */\n  display: table;\n  /* 1 */\n  max-width: 100%;\n  /* 1 */\n  padding: 0;\n  /* 3 */\n  color: inherit;\n  /* 2 */\n  white-space: normal;\n  /* 1 */ }\n\n/**\n     * 1. Add the correct display in IE 9-.\n     * 2. Add the correct vertical alignment in Chrome, Firefox, and Opera.\n     */\nprogress {\n  display: inline-block;\n  /* 1 */\n  vertical-align: baseline;\n  /* 2 */ }\n\n/**\n     * Remove the default vertical scrollbar in IE.\n     */\ntextarea {\n  overflow: auto; }\n\n/* Interactive\n       ========================================================================== */\n/*\n     * Add the correct display in Edge, IE, and Firefox.\n     */\ndetails {\n  display: block; }\n\n/*\n     * Add the correct display in all browsers.\n     */\nsummary {\n  display: list-item; }\n\n/*\n     * Add the correct display in IE 9-.\n     */\nmenu {\n  display: block; }\n\n/* Scripting\n       ========================================================================== */\n/**\n     * Add the correct display in IE 9-.\n     */\ncanvas {\n  display: inline-block; }\n\n/**\n     * Add the correct display in IE.\n     */\ntemplate {\n  display: none; }\n\n/* Hidden\n       ========================================================================== */\n/**\n     * Add the correct display in IE 10-.\n     */\n[hidden] {\n  display: none; }\n\n.foundation-mq {\n  font-family: \"small=0em&medium=40em&large=64em&xlarge=75em&xxlarge=90em\"; }\n\nhtml {\n  box-sizing: border-box;\n  font-size: 100%; }\n\n*,\n*::before,\n*::after {\n  box-sizing: inherit; }\n\nbody {\n  margin: 0;\n  padding: 0;\n  background: #fefefe;\n  font-family: \"Helvetica Neue\", Helvetica, Roboto, Arial, sans-serif;\n  font-weight: normal;\n  line-height: 1.5;\n  color: #0a0a0a;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\nimg {\n  display: inline-block;\n  vertical-align: middle;\n  max-width: 100%;\n  height: auto;\n  -ms-interpolation-mode: bicubic; }\n\ntextarea {\n  height: auto;\n  min-height: 50px;\n  border-radius: 0; }\n\nselect {\n  width: 100%;\n  border-radius: 0; }\n\n.map_canvas img,\n.map_canvas embed,\n.map_canvas object,\n.mqa-display img,\n.mqa-display embed,\n.mqa-display object {\n  max-width: none !important; }\n\nbutton {\n  padding: 0;\n  appearance: none;\n  border: 0;\n  border-radius: 0;\n  background: transparent;\n  line-height: 1; }\n  [data-whatinput='mouse'] button {\n    outline: 0; }\n\n.is-visible {\n  display: block !important; }\n\n.is-hidden {\n  display: none !important; }\n\n.row {\n  max-width: 75rem;\n  margin-right: auto;\n  margin-left: auto; }\n  .row::before, .row::after {\n    display: table;\n    content: ' '; }\n  .row::after {\n    clear: both; }\n  .row.collapse > .column, .row.collapse > .columns {\n    padding-right: 0;\n    padding-left: 0; }\n  .row .row {\n    margin-right: -0.625rem;\n    margin-left: -0.625rem; }\n    @media print, screen and (min-width: 40em) {\n      .row .row {\n        margin-right: -0.9375rem;\n        margin-left: -0.9375rem; } }\n    @media print, screen and (min-width: 64em) {\n      .row .row {\n        margin-right: -0.9375rem;\n        margin-left: -0.9375rem; } }\n    .row .row.collapse {\n      margin-right: 0;\n      margin-left: 0; }\n  .row.expanded {\n    max-width: none; }\n    .row.expanded .row {\n      margin-right: auto;\n      margin-left: auto; }\n  .row.gutter-small > .column, .row.gutter-small > .columns {\n    padding-right: 0.625rem;\n    padding-left: 0.625rem; }\n  .row.gutter-medium > .column, .row.gutter-medium > .columns {\n    padding-right: 0.9375rem;\n    padding-left: 0.9375rem; }\n\n.column, .columns {\n  width: 100%;\n  float: left;\n  padding-right: 0.625rem;\n  padding-left: 0.625rem; }\n  @media print, screen and (min-width: 40em) {\n    .column, .columns {\n      padding-right: 0.9375rem;\n      padding-left: 0.9375rem; } }\n  .column:last-child:not(:first-child), .columns:last-child:not(:first-child) {\n    float: right; }\n  .column.end:last-child:last-child, .end.columns:last-child:last-child {\n    float: left; }\n\n.column.row.row, .row.row.columns {\n  float: none; }\n\n.row .column.row.row, .row .row.row.columns {\n  margin-right: 0;\n  margin-left: 0;\n  padding-right: 0;\n  padding-left: 0; }\n\n.small-1 {\n  width: 8.33333%; }\n\n.small-push-1 {\n  position: relative;\n  left: 8.33333%; }\n\n.small-pull-1 {\n  position: relative;\n  left: -8.33333%; }\n\n.small-offset-0 {\n  margin-left: 0%; }\n\n.small-2 {\n  width: 16.66667%; }\n\n.small-push-2 {\n  position: relative;\n  left: 16.66667%; }\n\n.small-pull-2 {\n  position: relative;\n  left: -16.66667%; }\n\n.small-offset-1 {\n  margin-left: 8.33333%; }\n\n.small-3 {\n  width: 25%; }\n\n.small-push-3 {\n  position: relative;\n  left: 25%; }\n\n.small-pull-3 {\n  position: relative;\n  left: -25%; }\n\n.small-offset-2 {\n  margin-left: 16.66667%; }\n\n.small-4 {\n  width: 33.33333%; }\n\n.small-push-4 {\n  position: relative;\n  left: 33.33333%; }\n\n.small-pull-4 {\n  position: relative;\n  left: -33.33333%; }\n\n.small-offset-3 {\n  margin-left: 25%; }\n\n.small-5 {\n  width: 41.66667%; }\n\n.small-push-5 {\n  position: relative;\n  left: 41.66667%; }\n\n.small-pull-5 {\n  position: relative;\n  left: -41.66667%; }\n\n.small-offset-4 {\n  margin-left: 33.33333%; }\n\n.small-6 {\n  width: 50%; }\n\n.small-push-6 {\n  position: relative;\n  left: 50%; }\n\n.small-pull-6 {\n  position: relative;\n  left: -50%; }\n\n.small-offset-5 {\n  margin-left: 41.66667%; }\n\n.small-7 {\n  width: 58.33333%; }\n\n.small-push-7 {\n  position: relative;\n  left: 58.33333%; }\n\n.small-pull-7 {\n  position: relative;\n  left: -58.33333%; }\n\n.small-offset-6 {\n  margin-left: 50%; }\n\n.small-8 {\n  width: 66.66667%; }\n\n.small-push-8 {\n  position: relative;\n  left: 66.66667%; }\n\n.small-pull-8 {\n  position: relative;\n  left: -66.66667%; }\n\n.small-offset-7 {\n  margin-left: 58.33333%; }\n\n.small-9 {\n  width: 75%; }\n\n.small-push-9 {\n  position: relative;\n  left: 75%; }\n\n.small-pull-9 {\n  position: relative;\n  left: -75%; }\n\n.small-offset-8 {\n  margin-left: 66.66667%; }\n\n.small-10 {\n  width: 83.33333%; }\n\n.small-push-10 {\n  position: relative;\n  left: 83.33333%; }\n\n.small-pull-10 {\n  position: relative;\n  left: -83.33333%; }\n\n.small-offset-9 {\n  margin-left: 75%; }\n\n.small-11 {\n  width: 91.66667%; }\n\n.small-push-11 {\n  position: relative;\n  left: 91.66667%; }\n\n.small-pull-11 {\n  position: relative;\n  left: -91.66667%; }\n\n.small-offset-10 {\n  margin-left: 83.33333%; }\n\n.small-12 {\n  width: 100%; }\n\n.small-offset-11 {\n  margin-left: 91.66667%; }\n\n.small-up-1 > .column, .small-up-1 > .columns {\n  float: left;\n  width: 100%; }\n  .small-up-1 > .column:nth-of-type(1n), .small-up-1 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-1 > .column:nth-of-type(1n+1), .small-up-1 > .columns:nth-of-type(1n+1) {\n    clear: both; }\n  .small-up-1 > .column:last-child, .small-up-1 > .columns:last-child {\n    float: left; }\n\n.small-up-2 > .column, .small-up-2 > .columns {\n  float: left;\n  width: 50%; }\n  .small-up-2 > .column:nth-of-type(1n), .small-up-2 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-2 > .column:nth-of-type(2n+1), .small-up-2 > .columns:nth-of-type(2n+1) {\n    clear: both; }\n  .small-up-2 > .column:last-child, .small-up-2 > .columns:last-child {\n    float: left; }\n\n.small-up-3 > .column, .small-up-3 > .columns {\n  float: left;\n  width: 33.33333%; }\n  .small-up-3 > .column:nth-of-type(1n), .small-up-3 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-3 > .column:nth-of-type(3n+1), .small-up-3 > .columns:nth-of-type(3n+1) {\n    clear: both; }\n  .small-up-3 > .column:last-child, .small-up-3 > .columns:last-child {\n    float: left; }\n\n.small-up-4 > .column, .small-up-4 > .columns {\n  float: left;\n  width: 25%; }\n  .small-up-4 > .column:nth-of-type(1n), .small-up-4 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-4 > .column:nth-of-type(4n+1), .small-up-4 > .columns:nth-of-type(4n+1) {\n    clear: both; }\n  .small-up-4 > .column:last-child, .small-up-4 > .columns:last-child {\n    float: left; }\n\n.small-up-5 > .column, .small-up-5 > .columns {\n  float: left;\n  width: 20%; }\n  .small-up-5 > .column:nth-of-type(1n), .small-up-5 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-5 > .column:nth-of-type(5n+1), .small-up-5 > .columns:nth-of-type(5n+1) {\n    clear: both; }\n  .small-up-5 > .column:last-child, .small-up-5 > .columns:last-child {\n    float: left; }\n\n.small-up-6 > .column, .small-up-6 > .columns {\n  float: left;\n  width: 16.66667%; }\n  .small-up-6 > .column:nth-of-type(1n), .small-up-6 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-6 > .column:nth-of-type(6n+1), .small-up-6 > .columns:nth-of-type(6n+1) {\n    clear: both; }\n  .small-up-6 > .column:last-child, .small-up-6 > .columns:last-child {\n    float: left; }\n\n.small-up-7 > .column, .small-up-7 > .columns {\n  float: left;\n  width: 14.28571%; }\n  .small-up-7 > .column:nth-of-type(1n), .small-up-7 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-7 > .column:nth-of-type(7n+1), .small-up-7 > .columns:nth-of-type(7n+1) {\n    clear: both; }\n  .small-up-7 > .column:last-child, .small-up-7 > .columns:last-child {\n    float: left; }\n\n.small-up-8 > .column, .small-up-8 > .columns {\n  float: left;\n  width: 12.5%; }\n  .small-up-8 > .column:nth-of-type(1n), .small-up-8 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-8 > .column:nth-of-type(8n+1), .small-up-8 > .columns:nth-of-type(8n+1) {\n    clear: both; }\n  .small-up-8 > .column:last-child, .small-up-8 > .columns:last-child {\n    float: left; }\n\n.small-collapse > .column, .small-collapse > .columns {\n  padding-right: 0;\n  padding-left: 0; }\n\n.small-collapse .row {\n  margin-right: 0;\n  margin-left: 0; }\n\n.expanded.row .small-collapse.row {\n  margin-right: 0;\n  margin-left: 0; }\n\n.small-uncollapse > .column, .small-uncollapse > .columns {\n  padding-right: 0.625rem;\n  padding-left: 0.625rem; }\n\n.small-centered {\n  margin-right: auto;\n  margin-left: auto; }\n  .small-centered, .small-centered:last-child:not(:first-child) {\n    float: none;\n    clear: both; }\n\n.small-uncentered,\n.small-push-0,\n.small-pull-0 {\n  position: static;\n  float: left;\n  margin-right: 0;\n  margin-left: 0; }\n\n@media print, screen and (min-width: 40em) {\n  .medium-1 {\n    width: 8.33333%; }\n  .medium-push-1 {\n    position: relative;\n    left: 8.33333%; }\n  .medium-pull-1 {\n    position: relative;\n    left: -8.33333%; }\n  .medium-offset-0 {\n    margin-left: 0%; }\n  .medium-2 {\n    width: 16.66667%; }\n  .medium-push-2 {\n    position: relative;\n    left: 16.66667%; }\n  .medium-pull-2 {\n    position: relative;\n    left: -16.66667%; }\n  .medium-offset-1 {\n    margin-left: 8.33333%; }\n  .medium-3 {\n    width: 25%; }\n  .medium-push-3 {\n    position: relative;\n    left: 25%; }\n  .medium-pull-3 {\n    position: relative;\n    left: -25%; }\n  .medium-offset-2 {\n    margin-left: 16.66667%; }\n  .medium-4 {\n    width: 33.33333%; }\n  .medium-push-4 {\n    position: relative;\n    left: 33.33333%; }\n  .medium-pull-4 {\n    position: relative;\n    left: -33.33333%; }\n  .medium-offset-3 {\n    margin-left: 25%; }\n  .medium-5 {\n    width: 41.66667%; }\n  .medium-push-5 {\n    position: relative;\n    left: 41.66667%; }\n  .medium-pull-5 {\n    position: relative;\n    left: -41.66667%; }\n  .medium-offset-4 {\n    margin-left: 33.33333%; }\n  .medium-6 {\n    width: 50%; }\n  .medium-push-6 {\n    position: relative;\n    left: 50%; }\n  .medium-pull-6 {\n    position: relative;\n    left: -50%; }\n  .medium-offset-5 {\n    margin-left: 41.66667%; }\n  .medium-7 {\n    width: 58.33333%; }\n  .medium-push-7 {\n    position: relative;\n    left: 58.33333%; }\n  .medium-pull-7 {\n    position: relative;\n    left: -58.33333%; }\n  .medium-offset-6 {\n    margin-left: 50%; }\n  .medium-8 {\n    width: 66.66667%; }\n  .medium-push-8 {\n    position: relative;\n    left: 66.66667%; }\n  .medium-pull-8 {\n    position: relative;\n    left: -66.66667%; }\n  .medium-offset-7 {\n    margin-left: 58.33333%; }\n  .medium-9 {\n    width: 75%; }\n  .medium-push-9 {\n    position: relative;\n    left: 75%; }\n  .medium-pull-9 {\n    position: relative;\n    left: -75%; }\n  .medium-offset-8 {\n    margin-left: 66.66667%; }\n  .medium-10 {\n    width: 83.33333%; }\n  .medium-push-10 {\n    position: relative;\n    left: 83.33333%; }\n  .medium-pull-10 {\n    position: relative;\n    left: -83.33333%; }\n  .medium-offset-9 {\n    margin-left: 75%; }\n  .medium-11 {\n    width: 91.66667%; }\n  .medium-push-11 {\n    position: relative;\n    left: 91.66667%; }\n  .medium-pull-11 {\n    position: relative;\n    left: -91.66667%; }\n  .medium-offset-10 {\n    margin-left: 83.33333%; }\n  .medium-12 {\n    width: 100%; }\n  .medium-offset-11 {\n    margin-left: 91.66667%; }\n  .medium-up-1 > .column, .medium-up-1 > .columns {\n    float: left;\n    width: 100%; }\n    .medium-up-1 > .column:nth-of-type(1n), .medium-up-1 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-1 > .column:nth-of-type(1n+1), .medium-up-1 > .columns:nth-of-type(1n+1) {\n      clear: both; }\n    .medium-up-1 > .column:last-child, .medium-up-1 > .columns:last-child {\n      float: left; }\n  .medium-up-2 > .column, .medium-up-2 > .columns {\n    float: left;\n    width: 50%; }\n    .medium-up-2 > .column:nth-of-type(1n), .medium-up-2 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-2 > .column:nth-of-type(2n+1), .medium-up-2 > .columns:nth-of-type(2n+1) {\n      clear: both; }\n    .medium-up-2 > .column:last-child, .medium-up-2 > .columns:last-child {\n      float: left; }\n  .medium-up-3 > .column, .medium-up-3 > .columns {\n    float: left;\n    width: 33.33333%; }\n    .medium-up-3 > .column:nth-of-type(1n), .medium-up-3 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-3 > .column:nth-of-type(3n+1), .medium-up-3 > .columns:nth-of-type(3n+1) {\n      clear: both; }\n    .medium-up-3 > .column:last-child, .medium-up-3 > .columns:last-child {\n      float: left; }\n  .medium-up-4 > .column, .medium-up-4 > .columns {\n    float: left;\n    width: 25%; }\n    .medium-up-4 > .column:nth-of-type(1n), .medium-up-4 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-4 > .column:nth-of-type(4n+1), .medium-up-4 > .columns:nth-of-type(4n+1) {\n      clear: both; }\n    .medium-up-4 > .column:last-child, .medium-up-4 > .columns:last-child {\n      float: left; }\n  .medium-up-5 > .column, .medium-up-5 > .columns {\n    float: left;\n    width: 20%; }\n    .medium-up-5 > .column:nth-of-type(1n), .medium-up-5 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-5 > .column:nth-of-type(5n+1), .medium-up-5 > .columns:nth-of-type(5n+1) {\n      clear: both; }\n    .medium-up-5 > .column:last-child, .medium-up-5 > .columns:last-child {\n      float: left; }\n  .medium-up-6 > .column, .medium-up-6 > .columns {\n    float: left;\n    width: 16.66667%; }\n    .medium-up-6 > .column:nth-of-type(1n), .medium-up-6 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-6 > .column:nth-of-type(6n+1), .medium-up-6 > .columns:nth-of-type(6n+1) {\n      clear: both; }\n    .medium-up-6 > .column:last-child, .medium-up-6 > .columns:last-child {\n      float: left; }\n  .medium-up-7 > .column, .medium-up-7 > .columns {\n    float: left;\n    width: 14.28571%; }\n    .medium-up-7 > .column:nth-of-type(1n), .medium-up-7 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-7 > .column:nth-of-type(7n+1), .medium-up-7 > .columns:nth-of-type(7n+1) {\n      clear: both; }\n    .medium-up-7 > .column:last-child, .medium-up-7 > .columns:last-child {\n      float: left; }\n  .medium-up-8 > .column, .medium-up-8 > .columns {\n    float: left;\n    width: 12.5%; }\n    .medium-up-8 > .column:nth-of-type(1n), .medium-up-8 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-8 > .column:nth-of-type(8n+1), .medium-up-8 > .columns:nth-of-type(8n+1) {\n      clear: both; }\n    .medium-up-8 > .column:last-child, .medium-up-8 > .columns:last-child {\n      float: left; }\n  .medium-collapse > .column, .medium-collapse > .columns {\n    padding-right: 0;\n    padding-left: 0; }\n  .medium-collapse .row {\n    margin-right: 0;\n    margin-left: 0; }\n  .expanded.row .medium-collapse.row {\n    margin-right: 0;\n    margin-left: 0; }\n  .medium-uncollapse > .column, .medium-uncollapse > .columns {\n    padding-right: 0.9375rem;\n    padding-left: 0.9375rem; }\n  .medium-centered {\n    margin-right: auto;\n    margin-left: auto; }\n    .medium-centered, .medium-centered:last-child:not(:first-child) {\n      float: none;\n      clear: both; }\n  .medium-uncentered,\n  .medium-push-0,\n  .medium-pull-0 {\n    position: static;\n    float: left;\n    margin-right: 0;\n    margin-left: 0; } }\n\n@media print, screen and (min-width: 64em) {\n  .large-1 {\n    width: 8.33333%; }\n  .large-push-1 {\n    position: relative;\n    left: 8.33333%; }\n  .large-pull-1 {\n    position: relative;\n    left: -8.33333%; }\n  .large-offset-0 {\n    margin-left: 0%; }\n  .large-2 {\n    width: 16.66667%; }\n  .large-push-2 {\n    position: relative;\n    left: 16.66667%; }\n  .large-pull-2 {\n    position: relative;\n    left: -16.66667%; }\n  .large-offset-1 {\n    margin-left: 8.33333%; }\n  .large-3 {\n    width: 25%; }\n  .large-push-3 {\n    position: relative;\n    left: 25%; }\n  .large-pull-3 {\n    position: relative;\n    left: -25%; }\n  .large-offset-2 {\n    margin-left: 16.66667%; }\n  .large-4 {\n    width: 33.33333%; }\n  .large-push-4 {\n    position: relative;\n    left: 33.33333%; }\n  .large-pull-4 {\n    position: relative;\n    left: -33.33333%; }\n  .large-offset-3 {\n    margin-left: 25%; }\n  .large-5 {\n    width: 41.66667%; }\n  .large-push-5 {\n    position: relative;\n    left: 41.66667%; }\n  .large-pull-5 {\n    position: relative;\n    left: -41.66667%; }\n  .large-offset-4 {\n    margin-left: 33.33333%; }\n  .large-6 {\n    width: 50%; }\n  .large-push-6 {\n    position: relative;\n    left: 50%; }\n  .large-pull-6 {\n    position: relative;\n    left: -50%; }\n  .large-offset-5 {\n    margin-left: 41.66667%; }\n  .large-7 {\n    width: 58.33333%; }\n  .large-push-7 {\n    position: relative;\n    left: 58.33333%; }\n  .large-pull-7 {\n    position: relative;\n    left: -58.33333%; }\n  .large-offset-6 {\n    margin-left: 50%; }\n  .large-8 {\n    width: 66.66667%; }\n  .large-push-8 {\n    position: relative;\n    left: 66.66667%; }\n  .large-pull-8 {\n    position: relative;\n    left: -66.66667%; }\n  .large-offset-7 {\n    margin-left: 58.33333%; }\n  .large-9 {\n    width: 75%; }\n  .large-push-9 {\n    position: relative;\n    left: 75%; }\n  .large-pull-9 {\n    position: relative;\n    left: -75%; }\n  .large-offset-8 {\n    margin-left: 66.66667%; }\n  .large-10 {\n    width: 83.33333%; }\n  .large-push-10 {\n    position: relative;\n    left: 83.33333%; }\n  .large-pull-10 {\n    position: relative;\n    left: -83.33333%; }\n  .large-offset-9 {\n    margin-left: 75%; }\n  .large-11 {\n    width: 91.66667%; }\n  .large-push-11 {\n    position: relative;\n    left: 91.66667%; }\n  .large-pull-11 {\n    position: relative;\n    left: -91.66667%; }\n  .large-offset-10 {\n    margin-left: 83.33333%; }\n  .large-12 {\n    width: 100%; }\n  .large-offset-11 {\n    margin-left: 91.66667%; }\n  .large-up-1 > .column, .large-up-1 > .columns {\n    float: left;\n    width: 100%; }\n    .large-up-1 > .column:nth-of-type(1n), .large-up-1 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-1 > .column:nth-of-type(1n+1), .large-up-1 > .columns:nth-of-type(1n+1) {\n      clear: both; }\n    .large-up-1 > .column:last-child, .large-up-1 > .columns:last-child {\n      float: left; }\n  .large-up-2 > .column, .large-up-2 > .columns {\n    float: left;\n    width: 50%; }\n    .large-up-2 > .column:nth-of-type(1n), .large-up-2 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-2 > .column:nth-of-type(2n+1), .large-up-2 > .columns:nth-of-type(2n+1) {\n      clear: both; }\n    .large-up-2 > .column:last-child, .large-up-2 > .columns:last-child {\n      float: left; }\n  .large-up-3 > .column, .large-up-3 > .columns {\n    float: left;\n    width: 33.33333%; }\n    .large-up-3 > .column:nth-of-type(1n), .large-up-3 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-3 > .column:nth-of-type(3n+1), .large-up-3 > .columns:nth-of-type(3n+1) {\n      clear: both; }\n    .large-up-3 > .column:last-child, .large-up-3 > .columns:last-child {\n      float: left; }\n  .large-up-4 > .column, .large-up-4 > .columns {\n    float: left;\n    width: 25%; }\n    .large-up-4 > .column:nth-of-type(1n), .large-up-4 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-4 > .column:nth-of-type(4n+1), .large-up-4 > .columns:nth-of-type(4n+1) {\n      clear: both; }\n    .large-up-4 > .column:last-child, .large-up-4 > .columns:last-child {\n      float: left; }\n  .large-up-5 > .column, .large-up-5 > .columns {\n    float: left;\n    width: 20%; }\n    .large-up-5 > .column:nth-of-type(1n), .large-up-5 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-5 > .column:nth-of-type(5n+1), .large-up-5 > .columns:nth-of-type(5n+1) {\n      clear: both; }\n    .large-up-5 > .column:last-child, .large-up-5 > .columns:last-child {\n      float: left; }\n  .large-up-6 > .column, .large-up-6 > .columns {\n    float: left;\n    width: 16.66667%; }\n    .large-up-6 > .column:nth-of-type(1n), .large-up-6 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-6 > .column:nth-of-type(6n+1), .large-up-6 > .columns:nth-of-type(6n+1) {\n      clear: both; }\n    .large-up-6 > .column:last-child, .large-up-6 > .columns:last-child {\n      float: left; }\n  .large-up-7 > .column, .large-up-7 > .columns {\n    float: left;\n    width: 14.28571%; }\n    .large-up-7 > .column:nth-of-type(1n), .large-up-7 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-7 > .column:nth-of-type(7n+1), .large-up-7 > .columns:nth-of-type(7n+1) {\n      clear: both; }\n    .large-up-7 > .column:last-child, .large-up-7 > .columns:last-child {\n      float: left; }\n  .large-up-8 > .column, .large-up-8 > .columns {\n    float: left;\n    width: 12.5%; }\n    .large-up-8 > .column:nth-of-type(1n), .large-up-8 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-8 > .column:nth-of-type(8n+1), .large-up-8 > .columns:nth-of-type(8n+1) {\n      clear: both; }\n    .large-up-8 > .column:last-child, .large-up-8 > .columns:last-child {\n      float: left; }\n  .large-collapse > .column, .large-collapse > .columns {\n    padding-right: 0;\n    padding-left: 0; }\n  .large-collapse .row {\n    margin-right: 0;\n    margin-left: 0; }\n  .expanded.row .large-collapse.row {\n    margin-right: 0;\n    margin-left: 0; }\n  .large-uncollapse > .column, .large-uncollapse > .columns {\n    padding-right: 0.9375rem;\n    padding-left: 0.9375rem; }\n  .large-centered {\n    margin-right: auto;\n    margin-left: auto; }\n    .large-centered, .large-centered:last-child:not(:first-child) {\n      float: none;\n      clear: both; }\n  .large-uncentered,\n  .large-push-0,\n  .large-pull-0 {\n    position: static;\n    float: left;\n    margin-right: 0;\n    margin-left: 0; } }\n\n.column-block {\n  margin-bottom: 1.25rem; }\n  .column-block > :last-child {\n    margin-bottom: 0; }\n  @media print, screen and (min-width: 40em) {\n    .column-block {\n      margin-bottom: 1.875rem; }\n      .column-block > :last-child {\n        margin-bottom: 0; } }\n\ndiv,\ndl,\ndt,\ndd,\nul,\nol,\nli,\nh1,\nh2,\nh3,\nh4,\nh5,\nh6,\npre,\nform,\np,\nblockquote,\nth,\ntd {\n  margin: 0;\n  padding: 0; }\n\np {\n  margin-bottom: 1rem;\n  font-size: inherit;\n  line-height: 1.6;\n  text-rendering: optimizeLegibility; }\n\nem,\ni {\n  font-style: italic;\n  line-height: inherit; }\n\nstrong,\nb {\n  font-weight: bold;\n  line-height: inherit; }\n\nsmall {\n  font-size: 80%;\n  line-height: inherit; }\n\nh1,\nh2,\nh3,\nh4,\nh5,\nh6 {\n  font-family: \"Helvetica Neue\", Helvetica, Roboto, Arial, sans-serif;\n  font-style: normal;\n  font-weight: normal;\n  color: inherit;\n  text-rendering: optimizeLegibility; }\n  h1 small,\n  h2 small,\n  h3 small,\n  h4 small,\n  h5 small,\n  h6 small {\n    line-height: 0;\n    color: #cacaca; }\n\nh1 {\n  font-size: 1.5rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\nh2 {\n  font-size: 1.25rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\nh3 {\n  font-size: 1.1875rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\nh4 {\n  font-size: 1.125rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\nh5 {\n  font-size: 1.0625rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\nh6 {\n  font-size: 1rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\n@media print, screen and (min-width: 40em) {\n  h1 {\n    font-size: 3rem; }\n  h2 {\n    font-size: 2.5rem; }\n  h3 {\n    font-size: 1.9375rem; }\n  h4 {\n    font-size: 1.5625rem; }\n  h5 {\n    font-size: 1.25rem; }\n  h6 {\n    font-size: 1rem; } }\n\na {\n  line-height: inherit;\n  color: #1779ba;\n  text-decoration: none;\n  cursor: pointer; }\n  a:hover, a:focus {\n    color: #1468a0; }\n  a img {\n    border: 0; }\n\nhr {\n  clear: both;\n  max-width: 75rem;\n  height: 0;\n  margin: 1.25rem auto;\n  border-top: 0;\n  border-right: 0;\n  border-bottom: 1px solid #cacaca;\n  border-left: 0; }\n\nul,\nol,\ndl {\n  margin-bottom: 1rem;\n  list-style-position: outside;\n  line-height: 1.6; }\n\nli {\n  font-size: inherit; }\n\nul {\n  margin-left: 1.25rem;\n  list-style-type: disc; }\n\nol {\n  margin-left: 1.25rem; }\n\nul ul, ol ul, ul ol, ol ol {\n  margin-left: 1.25rem;\n  margin-bottom: 0; }\n\ndl {\n  margin-bottom: 1rem; }\n  dl dt {\n    margin-bottom: 0.3rem;\n    font-weight: bold; }\n\nblockquote {\n  margin: 0 0 1rem;\n  padding: 0.5625rem 1.25rem 0 1.1875rem;\n  border-left: 1px solid #cacaca; }\n  blockquote, blockquote p {\n    line-height: 1.6;\n    color: #8a8a8a; }\n\ncite {\n  display: block;\n  font-size: 0.8125rem;\n  color: #8a8a8a; }\n  cite:before {\n    content: \"\\2014   \"; }\n\nabbr {\n  border-bottom: 1px dotted #0a0a0a;\n  color: #0a0a0a;\n  cursor: help; }\n\nfigure {\n  margin: 0; }\n\ncode {\n  padding: 0.125rem 0.3125rem 0.0625rem;\n  border: 1px solid #cacaca;\n  background-color: #e6e6e6;\n  font-family: Consolas, \"Liberation Mono\", Courier, monospace;\n  font-weight: normal;\n  color: #0a0a0a; }\n\nkbd {\n  margin: 0;\n  padding: 0.125rem 0.25rem 0;\n  background-color: #e6e6e6;\n  font-family: Consolas, \"Liberation Mono\", Courier, monospace;\n  color: #0a0a0a; }\n\n.subheader {\n  margin-top: 0.2rem;\n  margin-bottom: 0.5rem;\n  font-weight: normal;\n  line-height: 1.4;\n  color: #8a8a8a; }\n\n.lead {\n  font-size: 125%;\n  line-height: 1.6; }\n\n.stat {\n  font-size: 2.5rem;\n  line-height: 1; }\n  p + .stat {\n    margin-top: -1rem; }\n\n.no-bullet {\n  margin-left: 0;\n  list-style: none; }\n\n.text-left {\n  text-align: left; }\n\n.text-right {\n  text-align: right; }\n\n.text-center {\n  text-align: center; }\n\n.text-justify {\n  text-align: justify; }\n\n@media print, screen and (min-width: 40em) {\n  .medium-text-left {\n    text-align: left; }\n  .medium-text-right {\n    text-align: right; }\n  .medium-text-center {\n    text-align: center; }\n  .medium-text-justify {\n    text-align: justify; } }\n\n@media print, screen and (min-width: 64em) {\n  .large-text-left {\n    text-align: left; }\n  .large-text-right {\n    text-align: right; }\n  .large-text-center {\n    text-align: center; }\n  .large-text-justify {\n    text-align: justify; } }\n\n.show-for-print {\n  display: none !important; }\n\n@media print {\n  * {\n    background: transparent !important;\n    box-shadow: none !important;\n    color: black !important;\n    text-shadow: none !important; }\n  .show-for-print {\n    display: block !important; }\n  .hide-for-print {\n    display: none !important; }\n  table.show-for-print {\n    display: table !important; }\n  thead.show-for-print {\n    display: table-header-group !important; }\n  tbody.show-for-print {\n    display: table-row-group !important; }\n  tr.show-for-print {\n    display: table-row !important; }\n  td.show-for-print {\n    display: table-cell !important; }\n  th.show-for-print {\n    display: table-cell !important; }\n  a,\n  a:visited {\n    text-decoration: underline; }\n  a[href]:after {\n    content: \" (\" attr(href) \")\"; }\n  .ir a:after,\n  a[href^='javascript:']:after,\n  a[href^='#']:after {\n    content: ''; }\n  abbr[title]:after {\n    content: \" (\" attr(title) \")\"; }\n  pre,\n  blockquote {\n    border: 1px solid #8a8a8a;\n    page-break-inside: avoid; }\n  thead {\n    display: table-header-group; }\n  tr,\n  img {\n    page-break-inside: avoid; }\n  img {\n    max-width: 100% !important; }\n  @page {\n    margin: 0.5cm; }\n  p,\n  h2,\n  h3 {\n    orphans: 3;\n    widows: 3; }\n  h2,\n  h3 {\n    page-break-after: avoid; } }\n\n[type='text'], [type='password'], [type='date'], [type='datetime'], [type='datetime-local'], [type='month'], [type='week'], [type='email'], [type='number'], [type='search'], [type='tel'], [type='time'], [type='url'], [type='color'],\ntextarea {\n  display: block;\n  box-sizing: border-box;\n  width: 100%;\n  height: 2.4375rem;\n  margin: 0 0 1rem;\n  padding: 0.5rem;\n  border: 1px solid #cacaca;\n  border-radius: 0;\n  background-color: #fefefe;\n  box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.1);\n  font-family: inherit;\n  font-size: 1rem;\n  font-weight: normal;\n  color: #0a0a0a;\n  transition: box-shadow 0.5s, border-color 0.25s ease-in-out;\n  appearance: none; }\n  [type='text']:focus, [type='password']:focus, [type='date']:focus, [type='datetime']:focus, [type='datetime-local']:focus, [type='month']:focus, [type='week']:focus, [type='email']:focus, [type='number']:focus, [type='search']:focus, [type='tel']:focus, [type='time']:focus, [type='url']:focus, [type='color']:focus,\n  textarea:focus {\n    outline: none;\n    border: 1px solid #8a8a8a;\n    background-color: #fefefe;\n    box-shadow: 0 0 5px #cacaca;\n    transition: box-shadow 0.5s, border-color 0.25s ease-in-out; }\n\ntextarea {\n  max-width: 100%; }\n  textarea[rows] {\n    height: auto; }\n\ninput::placeholder,\ntextarea::placeholder {\n  color: #cacaca; }\n\ninput:disabled, input[readonly],\ntextarea:disabled,\ntextarea[readonly] {\n  background-color: #e6e6e6;\n  cursor: not-allowed; }\n\n[type='submit'],\n[type='button'] {\n  appearance: none;\n  border-radius: 0; }\n\ninput[type='search'] {\n  box-sizing: border-box; }\n\n[type='file'],\n[type='checkbox'],\n[type='radio'] {\n  margin: 0 0 1rem; }\n\n[type='checkbox'] + label,\n[type='radio'] + label {\n  display: inline-block;\n  vertical-align: baseline;\n  margin-left: 0.5rem;\n  margin-right: 1rem;\n  margin-bottom: 0; }\n  [type='checkbox'] + label[for],\n  [type='radio'] + label[for] {\n    cursor: pointer; }\n\nlabel > [type='checkbox'],\nlabel > [type='radio'] {\n  margin-right: 0.5rem; }\n\n[type='file'] {\n  width: 100%; }\n\nlabel {\n  display: block;\n  margin: 0;\n  font-size: 0.875rem;\n  font-weight: normal;\n  line-height: 1.8;\n  color: #0a0a0a; }\n  label.middle {\n    margin: 0 0 1rem;\n    padding: 0.5625rem 0; }\n\n.help-text {\n  margin-top: -0.5rem;\n  font-size: 0.8125rem;\n  font-style: italic;\n  color: #0a0a0a; }\n\n.input-group {\n  display: table;\n  width: 100%;\n  margin-bottom: 1rem; }\n  .input-group > :first-child {\n    border-radius: 0 0 0 0; }\n  .input-group > :last-child > * {\n    border-radius: 0 0 0 0; }\n\n.input-group-label, .input-group-field, .input-group-button, .input-group-button a,\n.input-group-button input,\n.input-group-button button,\n.input-group-button label {\n  margin: 0;\n  white-space: nowrap;\n  display: table-cell;\n  vertical-align: middle; }\n\n.input-group-label {\n  padding: 0 1rem;\n  border: 1px solid #cacaca;\n  background: #e6e6e6;\n  color: #0a0a0a;\n  text-align: center;\n  white-space: nowrap;\n  width: 1%;\n  height: 100%; }\n  .input-group-label:first-child {\n    border-right: 0; }\n  .input-group-label:last-child {\n    border-left: 0; }\n\n.input-group-field {\n  border-radius: 0;\n  height: 2.5rem; }\n\n.input-group-button {\n  padding-top: 0;\n  padding-bottom: 0;\n  text-align: center;\n  width: 1%;\n  height: 100%; }\n  .input-group-button a,\n  .input-group-button input,\n  .input-group-button button,\n  .input-group-button label {\n    height: 2.5rem;\n    padding-top: 0;\n    padding-bottom: 0;\n    font-size: 1rem; }\n\n.input-group .input-group-button {\n  display: table-cell; }\n\nfieldset {\n  margin: 0;\n  padding: 0;\n  border: 0; }\n\nlegend {\n  max-width: 100%;\n  margin-bottom: 0.5rem; }\n\n.fieldset {\n  margin: 1.125rem 0;\n  padding: 1.25rem;\n  border: 1px solid #cacaca; }\n  .fieldset legend {\n    margin: 0;\n    margin-left: -0.1875rem;\n    padding: 0 0.1875rem;\n    background: #fefefe; }\n\nselect {\n  height: 2.4375rem;\n  margin: 0 0 1rem;\n  padding: 0.5rem;\n  appearance: none;\n  border: 1px solid #cacaca;\n  border-radius: 0;\n  background-color: #fefefe;\n  font-family: inherit;\n  font-size: 1rem;\n  line-height: normal;\n  color: #0a0a0a;\n  background-image: url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='32' height='24' viewBox='0 0 32 24'><polygon points='0,0 32,0 16,24' style='fill: rgb%28138, 138, 138%29'></polygon></svg>\");\n  background-origin: content-box;\n  background-position: right -1rem center;\n  background-repeat: no-repeat;\n  background-size: 9px 6px;\n  padding-right: 1.5rem;\n  transition: box-shadow 0.5s, border-color 0.25s ease-in-out; }\n  @media screen and (min-width: 0\\0) {\n    select {\n      background-image: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAYCAYAAACbU/80AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAIpJREFUeNrEkckNgDAMBBfRkEt0ObRBBdsGXUDgmQfK4XhH2m8czQAAy27R3tsw4Qfe2x8uOO6oYLb6GlOor3GF+swURAOmUJ+RwtEJs9WvTGEYxBXqI1MQAZhCfUQKRzDMVj+TwrAIV6jvSUEkYAr1LSkcyTBb/V+KYfX7xAeusq3sLDtGH3kEGACPWIflNZfhRQAAAABJRU5ErkJggg==\"); } }\n  select:focus {\n    outline: none;\n    border: 1px solid #8a8a8a;\n    background-color: #fefefe;\n    box-shadow: 0 0 5px #cacaca;\n    transition: box-shadow 0.5s, border-color 0.25s ease-in-out; }\n  select:disabled {\n    background-color: #e6e6e6;\n    cursor: not-allowed; }\n  select::-ms-expand {\n    display: none; }\n  select[multiple] {\n    height: auto;\n    background-image: none; }\n\n.is-invalid-input:not(:focus) {\n  border-color: #cc4b37;\n  background-color: #f9ecea; }\n  .is-invalid-input:not(:focus)::placeholder {\n    color: #cc4b37; }\n\n.is-invalid-label {\n  color: #cc4b37; }\n\n.form-error {\n  display: none;\n  margin-top: -0.5rem;\n  margin-bottom: 1rem;\n  font-size: 0.75rem;\n  font-weight: bold;\n  color: #cc4b37; }\n  .form-error.is-visible {\n    display: block; }\n\n.button {\n  display: inline-block;\n  vertical-align: middle;\n  margin: 0 0 1rem 0;\n  padding: 0.85em 1em;\n  -webkit-appearance: none;\n  border: 1px solid transparent;\n  border-radius: 0;\n  transition: background-color 0.25s ease-out, color 0.25s ease-out;\n  font-size: 0.9rem;\n  line-height: 1;\n  text-align: center;\n  cursor: pointer;\n  background-color: #1779ba;\n  color: #fefefe; }\n  [data-whatinput='mouse'] .button {\n    outline: 0; }\n  .button:hover, .button:focus {\n    background-color: #14679e;\n    color: #fefefe; }\n  .button.tiny {\n    font-size: 0.6rem; }\n  .button.small {\n    font-size: 0.75rem; }\n  .button.large {\n    font-size: 1.25rem; }\n  .button.expanded {\n    display: block;\n    width: 100%;\n    margin-right: 0;\n    margin-left: 0; }\n  .button.primary {\n    background-color: #1779ba;\n    color: #fefefe; }\n    .button.primary:hover, .button.primary:focus {\n      background-color: #126195;\n      color: #fefefe; }\n  .button.secondary {\n    background-color: #767676;\n    color: #fefefe; }\n    .button.secondary:hover, .button.secondary:focus {\n      background-color: #5e5e5e;\n      color: #fefefe; }\n  .button.success {\n    background-color: #3adb76;\n    color: #0a0a0a; }\n    .button.success:hover, .button.success:focus {\n      background-color: #22bb5b;\n      color: #0a0a0a; }\n  .button.warning {\n    background-color: #ffae00;\n    color: #0a0a0a; }\n    .button.warning:hover, .button.warning:focus {\n      background-color: #cc8b00;\n      color: #0a0a0a; }\n  .button.alert {\n    background-color: #cc4b37;\n    color: #fefefe; }\n    .button.alert:hover, .button.alert:focus {\n      background-color: #a53b2a;\n      color: #fefefe; }\n  .button.hollow {\n    border: 1px solid #1779ba;\n    color: #1779ba; }\n    .button.hollow, .button.hollow:hover, .button.hollow:focus {\n      background-color: transparent; }\n    .button.hollow:hover, .button.hollow:focus {\n      border-color: #0c3d5d;\n      color: #0c3d5d; }\n    .button.hollow.primary {\n      border: 1px solid #1779ba;\n      color: #1779ba; }\n      .button.hollow.primary:hover, .button.hollow.primary:focus {\n        border-color: #0c3d5d;\n        color: #0c3d5d; }\n    .button.hollow.secondary {\n      border: 1px solid #767676;\n      color: #767676; }\n      .button.hollow.secondary:hover, .button.hollow.secondary:focus {\n        border-color: #3b3b3b;\n        color: #3b3b3b; }\n    .button.hollow.success {\n      border: 1px solid #3adb76;\n      color: #3adb76; }\n      .button.hollow.success:hover, .button.hollow.success:focus {\n        border-color: #157539;\n        color: #157539; }\n    .button.hollow.warning {\n      border: 1px solid #ffae00;\n      color: #ffae00; }\n      .button.hollow.warning:hover, .button.hollow.warning:focus {\n        border-color: #805700;\n        color: #805700; }\n    .button.hollow.alert {\n      border: 1px solid #cc4b37;\n      color: #cc4b37; }\n      .button.hollow.alert:hover, .button.hollow.alert:focus {\n        border-color: #67251a;\n        color: #67251a; }\n  .button.disabled, .button[disabled] {\n    opacity: 0.25;\n    cursor: not-allowed; }\n    .button.disabled:hover, .button.disabled:focus, .button[disabled]:hover, .button[disabled]:focus {\n      background-color: #1779ba;\n      color: #fefefe; }\n    .button.disabled.primary, .button[disabled].primary {\n      opacity: 0.25;\n      cursor: not-allowed; }\n      .button.disabled.primary:hover, .button.disabled.primary:focus, .button[disabled].primary:hover, .button[disabled].primary:focus {\n        background-color: #1779ba;\n        color: #fefefe; }\n    .button.disabled.secondary, .button[disabled].secondary {\n      opacity: 0.25;\n      cursor: not-allowed; }\n      .button.disabled.secondary:hover, .button.disabled.secondary:focus, .button[disabled].secondary:hover, .button[disabled].secondary:focus {\n        background-color: #767676;\n        color: #fefefe; }\n    .button.disabled.success, .button[disabled].success {\n      opacity: 0.25;\n      cursor: not-allowed; }\n      .button.disabled.success:hover, .button.disabled.success:focus, .button[disabled].success:hover, .button[disabled].success:focus {\n        background-color: #3adb76;\n        color: #fefefe; }\n    .button.disabled.warning, .button[disabled].warning {\n      opacity: 0.25;\n      cursor: not-allowed; }\n      .button.disabled.warning:hover, .button.disabled.warning:focus, .button[disabled].warning:hover, .button[disabled].warning:focus {\n        background-color: #ffae00;\n        color: #fefefe; }\n    .button.disabled.alert, .button[disabled].alert {\n      opacity: 0.25;\n      cursor: not-allowed; }\n      .button.disabled.alert:hover, .button.disabled.alert:focus, .button[disabled].alert:hover, .button[disabled].alert:focus {\n        background-color: #cc4b37;\n        color: #fefefe; }\n  .button.dropdown::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 0.4em;\n    content: '';\n    border-bottom-width: 0;\n    border-top-style: solid;\n    border-color: #fefefe transparent transparent;\n    position: relative;\n    top: 0.4em;\n    display: inline-block;\n    float: right;\n    margin-left: 1em; }\n  .button.arrow-only::after {\n    top: -0.1em;\n    float: none;\n    margin-left: 0; }\n\n.accordion {\n  margin-left: 0;\n  background: #fefefe;\n  list-style-type: none; }\n\n.accordion-item:first-child > :first-child {\n  border-radius: 0 0 0 0; }\n\n.accordion-item:last-child > :last-child {\n  border-radius: 0 0 0 0; }\n\n.accordion-title {\n  position: relative;\n  display: block;\n  padding: 1.25rem 1rem;\n  border: 1px solid #e6e6e6;\n  border-bottom: 0;\n  font-size: 0.75rem;\n  line-height: 1;\n  color: #1779ba; }\n  :last-child:not(.is-active) > .accordion-title {\n    border-bottom: 1px solid #e6e6e6;\n    border-radius: 0 0 0 0; }\n  .accordion-title:hover, .accordion-title:focus {\n    background-color: #e6e6e6; }\n  .accordion-title::before {\n    position: absolute;\n    top: 50%;\n    right: 1rem;\n    margin-top: -0.5rem;\n    content: '+'; }\n  .is-active > .accordion-title::before {\n    content: '\\2013'; }\n\n.accordion-content {\n  display: none;\n  padding: 1rem;\n  border: 1px solid #e6e6e6;\n  border-bottom: 0;\n  background-color: #fefefe;\n  color: #0a0a0a; }\n  :last-child > .accordion-content:last-child {\n    border-bottom: 1px solid #e6e6e6; }\n\n.is-accordion-submenu-parent > a {\n  position: relative; }\n  .is-accordion-submenu-parent > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-bottom-width: 0;\n    border-top-style: solid;\n    border-color: #1779ba transparent transparent;\n    position: absolute;\n    top: 50%;\n    margin-top: -3px;\n    right: 1rem; }\n\n.is-accordion-submenu-parent[aria-expanded='true'] > a::after {\n  transform: rotate(180deg);\n  transform-origin: 50% 50%; }\n\n.badge {\n  display: inline-block;\n  min-width: 2.1em;\n  padding: 0.3em;\n  border-radius: 50%;\n  font-size: 0.6rem;\n  text-align: center;\n  background: #1779ba;\n  color: #fefefe; }\n  .badge.primary {\n    background: #1779ba;\n    color: #fefefe; }\n  .badge.secondary {\n    background: #767676;\n    color: #fefefe; }\n  .badge.success {\n    background: #3adb76;\n    color: #0a0a0a; }\n  .badge.warning {\n    background: #ffae00;\n    color: #0a0a0a; }\n  .badge.alert {\n    background: #cc4b37;\n    color: #fefefe; }\n\n.breadcrumbs {\n  margin: 0 0 1rem 0;\n  list-style: none; }\n  .breadcrumbs::before, .breadcrumbs::after {\n    display: table;\n    content: ' '; }\n  .breadcrumbs::after {\n    clear: both; }\n  .breadcrumbs li {\n    float: left;\n    font-size: 0.6875rem;\n    color: #0a0a0a;\n    cursor: default;\n    text-transform: uppercase; }\n    .breadcrumbs li:not(:last-child)::after {\n      position: relative;\n      top: 1px;\n      margin: 0 0.75rem;\n      opacity: 1;\n      content: \"/\";\n      color: #cacaca; }\n  .breadcrumbs a {\n    color: #1779ba; }\n    .breadcrumbs a:hover {\n      text-decoration: underline; }\n  .breadcrumbs .disabled {\n    color: #cacaca;\n    cursor: not-allowed; }\n\n.button-group {\n  margin-bottom: 1rem;\n  font-size: 0; }\n  .button-group::before, .button-group::after {\n    display: table;\n    content: ' '; }\n  .button-group::after {\n    clear: both; }\n  .button-group .button {\n    margin: 0;\n    margin-right: 1px;\n    margin-bottom: 1px;\n    font-size: 0.9rem; }\n    .button-group .button:last-child {\n      margin-right: 0; }\n  .button-group.tiny .button {\n    font-size: 0.6rem; }\n  .button-group.small .button {\n    font-size: 0.75rem; }\n  .button-group.large .button {\n    font-size: 1.25rem; }\n  .button-group.expanded {\n    margin-right: -1px; }\n    .button-group.expanded::before, .button-group.expanded::after {\n      display: none; }\n    .button-group.expanded .button:first-child:nth-last-child(2), .button-group.expanded .button:first-child:nth-last-child(2):first-child:nth-last-child(2) ~ .button {\n      display: inline-block;\n      width: calc(50% - 1px);\n      margin-right: 1px; }\n      .button-group.expanded .button:first-child:nth-last-child(2):last-child, .button-group.expanded .button:first-child:nth-last-child(2):first-child:nth-last-child(2) ~ .button:last-child {\n        margin-right: -6px; }\n    .button-group.expanded .button:first-child:nth-last-child(3), .button-group.expanded .button:first-child:nth-last-child(3):first-child:nth-last-child(3) ~ .button {\n      display: inline-block;\n      width: calc(33.33333% - 1px);\n      margin-right: 1px; }\n      .button-group.expanded .button:first-child:nth-last-child(3):last-child, .button-group.expanded .button:first-child:nth-last-child(3):first-child:nth-last-child(3) ~ .button:last-child {\n        margin-right: -6px; }\n    .button-group.expanded .button:first-child:nth-last-child(4), .button-group.expanded .button:first-child:nth-last-child(4):first-child:nth-last-child(4) ~ .button {\n      display: inline-block;\n      width: calc(25% - 1px);\n      margin-right: 1px; }\n      .button-group.expanded .button:first-child:nth-last-child(4):last-child, .button-group.expanded .button:first-child:nth-last-child(4):first-child:nth-last-child(4) ~ .button:last-child {\n        margin-right: -6px; }\n    .button-group.expanded .button:first-child:nth-last-child(5), .button-group.expanded .button:first-child:nth-last-child(5):first-child:nth-last-child(5) ~ .button {\n      display: inline-block;\n      width: calc(20% - 1px);\n      margin-right: 1px; }\n      .button-group.expanded .button:first-child:nth-last-child(5):last-child, .button-group.expanded .button:first-child:nth-last-child(5):first-child:nth-last-child(5) ~ .button:last-child {\n        margin-right: -6px; }\n    .button-group.expanded .button:first-child:nth-last-child(6), .button-group.expanded .button:first-child:nth-last-child(6):first-child:nth-last-child(6) ~ .button {\n      display: inline-block;\n      width: calc(16.66667% - 1px);\n      margin-right: 1px; }\n      .button-group.expanded .button:first-child:nth-last-child(6):last-child, .button-group.expanded .button:first-child:nth-last-child(6):first-child:nth-last-child(6) ~ .button:last-child {\n        margin-right: -6px; }\n  .button-group.primary .button {\n    background-color: #1779ba;\n    color: #fefefe; }\n    .button-group.primary .button:hover, .button-group.primary .button:focus {\n      background-color: #126195;\n      color: #fefefe; }\n  .button-group.secondary .button {\n    background-color: #767676;\n    color: #fefefe; }\n    .button-group.secondary .button:hover, .button-group.secondary .button:focus {\n      background-color: #5e5e5e;\n      color: #fefefe; }\n  .button-group.success .button {\n    background-color: #3adb76;\n    color: #0a0a0a; }\n    .button-group.success .button:hover, .button-group.success .button:focus {\n      background-color: #22bb5b;\n      color: #0a0a0a; }\n  .button-group.warning .button {\n    background-color: #ffae00;\n    color: #0a0a0a; }\n    .button-group.warning .button:hover, .button-group.warning .button:focus {\n      background-color: #cc8b00;\n      color: #0a0a0a; }\n  .button-group.alert .button {\n    background-color: #cc4b37;\n    color: #fefefe; }\n    .button-group.alert .button:hover, .button-group.alert .button:focus {\n      background-color: #a53b2a;\n      color: #fefefe; }\n  .button-group.stacked .button, .button-group.stacked-for-small .button, .button-group.stacked-for-medium .button {\n    width: 100%; }\n    .button-group.stacked .button:last-child, .button-group.stacked-for-small .button:last-child, .button-group.stacked-for-medium .button:last-child {\n      margin-bottom: 0; }\n  @media print, screen and (min-width: 40em) {\n    .button-group.stacked-for-small .button {\n      width: auto;\n      margin-bottom: 0; } }\n  @media print, screen and (min-width: 64em) {\n    .button-group.stacked-for-medium .button {\n      width: auto;\n      margin-bottom: 0; } }\n  @media screen and (max-width: 39.9375em) {\n    .button-group.stacked-for-small.expanded {\n      display: block; }\n      .button-group.stacked-for-small.expanded .button {\n        display: block;\n        margin-right: 0; } }\n\n.callout {\n  position: relative;\n  margin: 0 0 1rem 0;\n  padding: 1rem;\n  border: 1px solid rgba(10, 10, 10, 0.25);\n  border-radius: 0;\n  background-color: white;\n  color: #0a0a0a; }\n  .callout > :first-child {\n    margin-top: 0; }\n  .callout > :last-child {\n    margin-bottom: 0; }\n  .callout.primary {\n    background-color: #d7ecfa;\n    color: #0a0a0a; }\n  .callout.secondary {\n    background-color: #eaeaea;\n    color: #0a0a0a; }\n  .callout.success {\n    background-color: #e1faea;\n    color: #0a0a0a; }\n  .callout.warning {\n    background-color: #fff3d9;\n    color: #0a0a0a; }\n  .callout.alert {\n    background-color: #f7e4e1;\n    color: #0a0a0a; }\n  .callout.small {\n    padding-top: 0.5rem;\n    padding-right: 0.5rem;\n    padding-bottom: 0.5rem;\n    padding-left: 0.5rem; }\n  .callout.large {\n    padding-top: 3rem;\n    padding-right: 3rem;\n    padding-bottom: 3rem;\n    padding-left: 3rem; }\n\n.card {\n  margin-bottom: 1rem;\n  border: 1px solid #e6e6e6;\n  border-radius: 0;\n  background: #fefefe;\n  box-shadow: none;\n  overflow: hidden;\n  color: #0a0a0a; }\n  .card > :last-child {\n    margin-bottom: 0; }\n\n.card-divider {\n  padding: 1rem;\n  background: #e6e6e6; }\n  .card-divider > :last-child {\n    margin-bottom: 0; }\n\n.card-section {\n  padding: 1rem; }\n  .card-section > :last-child {\n    margin-bottom: 0; }\n\n.close-button {\n  position: absolute;\n  color: #8a8a8a;\n  cursor: pointer; }\n  [data-whatinput='mouse'] .close-button {\n    outline: 0; }\n  .close-button:hover, .close-button:focus {\n    color: #0a0a0a; }\n  .close-button.small {\n    right: 0.66rem;\n    top: 0.33em;\n    font-size: 1.5em;\n    line-height: 1; }\n  .close-button, .close-button.medium {\n    right: 1rem;\n    top: 0.5rem;\n    font-size: 2em;\n    line-height: 1; }\n\n.menu {\n  margin: 0;\n  list-style-type: none; }\n  .menu > li {\n    display: table-cell;\n    vertical-align: middle; }\n    [data-whatinput='mouse'] .menu > li {\n      outline: 0; }\n  .menu > li > a {\n    display: block;\n    padding: 0.7rem 1rem;\n    line-height: 1; }\n  .menu input,\n  .menu select,\n  .menu a,\n  .menu button {\n    margin-bottom: 0; }\n  .menu > li > a img,\n  .menu > li > a i,\n  .menu > li > a svg {\n    vertical-align: middle; }\n    .menu > li > a img + span,\n    .menu > li > a i + span,\n    .menu > li > a svg + span {\n      vertical-align: middle; }\n  .menu > li > a img,\n  .menu > li > a i,\n  .menu > li > a svg {\n    margin-right: 0.25rem;\n    display: inline-block; }\n  .menu > li, .menu.horizontal > li {\n    display: table-cell; }\n  .menu.expanded {\n    display: table;\n    width: 100%;\n    table-layout: fixed; }\n    .menu.expanded > li:first-child:last-child {\n      width: 100%; }\n  .menu.vertical > li {\n    display: block; }\n  @media print, screen and (min-width: 40em) {\n    .menu.medium-horizontal > li {\n      display: table-cell; }\n    .menu.medium-expanded {\n      display: table;\n      width: 100%;\n      table-layout: fixed; }\n      .menu.medium-expanded > li:first-child:last-child {\n        width: 100%; }\n    .menu.medium-vertical > li {\n      display: block; } }\n  @media print, screen and (min-width: 64em) {\n    .menu.large-horizontal > li {\n      display: table-cell; }\n    .menu.large-expanded {\n      display: table;\n      width: 100%;\n      table-layout: fixed; }\n      .menu.large-expanded > li:first-child:last-child {\n        width: 100%; }\n    .menu.large-vertical > li {\n      display: block; } }\n  .menu.simple li {\n    display: inline-block;\n    margin-right: 1rem;\n    line-height: 1; }\n  .menu.simple a {\n    padding: 0; }\n  .menu.align-right::before, .menu.align-right::after {\n    display: table;\n    content: ' '; }\n  .menu.align-right::after {\n    clear: both; }\n  .menu.align-right > li {\n    float: right; }\n  .menu.icon-top > li > a {\n    text-align: center; }\n    .menu.icon-top > li > a img,\n    .menu.icon-top > li > a i,\n    .menu.icon-top > li > a svg {\n      display: block;\n      margin: 0 auto 0.25rem; }\n  .menu.icon-top.vertical a > span {\n    margin: auto; }\n  .menu.nested {\n    margin-left: 1rem; }\n  .menu .active > a {\n    background: #1779ba;\n    color: #fefefe; }\n  .menu.menu-bordered li {\n    border: 1px solid #e6e6e6; }\n    .menu.menu-bordered li:not(:first-child) {\n      border-top: 0; }\n  .menu.menu-hover li:hover {\n    background-color: #e6e6e6; }\n\n.menu-text {\n  padding-top: 0;\n  padding-bottom: 0;\n  padding: 0.7rem 1rem;\n  font-weight: bold;\n  line-height: 1;\n  color: inherit; }\n\n.menu-centered {\n  text-align: center; }\n  .menu-centered > .menu {\n    display: inline-block; }\n\n.no-js [data-responsive-menu] ul {\n  display: none; }\n\n.menu-icon {\n  position: relative;\n  display: inline-block;\n  vertical-align: middle;\n  width: 20px;\n  height: 16px;\n  cursor: pointer; }\n  .menu-icon::after {\n    position: absolute;\n    top: 0;\n    left: 0;\n    display: block;\n    width: 100%;\n    height: 2px;\n    background: #fefefe;\n    box-shadow: 0 7px 0 #fefefe, 0 14px 0 #fefefe;\n    content: ''; }\n  .menu-icon:hover::after {\n    background: #cacaca;\n    box-shadow: 0 7px 0 #cacaca, 0 14px 0 #cacaca; }\n\n.menu-icon.dark {\n  position: relative;\n  display: inline-block;\n  vertical-align: middle;\n  width: 20px;\n  height: 16px;\n  cursor: pointer; }\n  .menu-icon.dark::after {\n    position: absolute;\n    top: 0;\n    left: 0;\n    display: block;\n    width: 100%;\n    height: 2px;\n    background: #0a0a0a;\n    box-shadow: 0 7px 0 #0a0a0a, 0 14px 0 #0a0a0a;\n    content: ''; }\n  .menu-icon.dark:hover::after {\n    background: #8a8a8a;\n    box-shadow: 0 7px 0 #8a8a8a, 0 14px 0 #8a8a8a; }\n\n.is-drilldown {\n  position: relative;\n  overflow: hidden; }\n  .is-drilldown li {\n    display: block; }\n  .is-drilldown.animate-height {\n    transition: height 0.5s; }\n\n.is-drilldown-submenu {\n  position: absolute;\n  top: 0;\n  left: 100%;\n  z-index: -1;\n  width: 100%;\n  background: #fefefe;\n  transition: transform 0.15s linear; }\n  .is-drilldown-submenu.is-active {\n    z-index: 1;\n    display: block;\n    transform: translateX(-100%); }\n  .is-drilldown-submenu.is-closing {\n    transform: translateX(100%); }\n\n.drilldown-submenu-cover-previous {\n  min-height: 100%; }\n\n.is-drilldown-submenu-parent > a {\n  position: relative; }\n  .is-drilldown-submenu-parent > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-right-width: 0;\n    border-left-style: solid;\n    border-color: transparent transparent transparent #1779ba;\n    position: absolute;\n    top: 50%;\n    margin-top: -6px;\n    right: 1rem; }\n\n.js-drilldown-back > a::before {\n  display: block;\n  width: 0;\n  height: 0;\n  border: inset 6px;\n  content: '';\n  border-left-width: 0;\n  border-right-style: solid;\n  border-color: transparent #1779ba transparent transparent;\n  border-left-width: 0;\n  display: inline-block;\n  vertical-align: middle;\n  margin-right: 0.75rem;\n  border-left-width: 0; }\n\n.dropdown-pane {\n  position: absolute;\n  z-index: 10;\n  display: block;\n  width: 300px;\n  padding: 1rem;\n  visibility: hidden;\n  border: 1px solid #cacaca;\n  border-radius: 0;\n  background-color: #fefefe;\n  font-size: 1rem; }\n  .dropdown-pane.is-open {\n    visibility: visible; }\n\n.dropdown-pane.tiny {\n  width: 100px; }\n\n.dropdown-pane.small {\n  width: 200px; }\n\n.dropdown-pane.large {\n  width: 400px; }\n\n.dropdown.menu > li.opens-left > .is-dropdown-submenu {\n  top: 100%;\n  right: 0;\n  left: auto; }\n\n.dropdown.menu > li.opens-right > .is-dropdown-submenu {\n  top: 100%;\n  right: auto;\n  left: 0; }\n\n.dropdown.menu > li.is-dropdown-submenu-parent > a {\n  position: relative;\n  padding-right: 1.5rem; }\n\n.dropdown.menu > li.is-dropdown-submenu-parent > a::after {\n  display: block;\n  width: 0;\n  height: 0;\n  border: inset 6px;\n  content: '';\n  border-bottom-width: 0;\n  border-top-style: solid;\n  border-color: #1779ba transparent transparent;\n  right: 5px;\n  margin-top: -3px; }\n\n[data-whatinput='mouse'] .dropdown.menu a {\n  outline: 0; }\n\n.no-js .dropdown.menu ul {\n  display: none; }\n\n.dropdown.menu.vertical > li .is-dropdown-submenu {\n  top: 0; }\n\n.dropdown.menu.vertical > li.opens-left > .is-dropdown-submenu {\n  right: 100%;\n  left: auto; }\n\n.dropdown.menu.vertical > li.opens-right > .is-dropdown-submenu {\n  right: auto;\n  left: 100%; }\n\n.dropdown.menu.vertical > li > a::after {\n  right: 14px; }\n\n.dropdown.menu.vertical > li.opens-left > a::after {\n  display: block;\n  width: 0;\n  height: 0;\n  border: inset 6px;\n  content: '';\n  border-left-width: 0;\n  border-right-style: solid;\n  border-color: transparent #1779ba transparent transparent; }\n\n.dropdown.menu.vertical > li.opens-right > a::after {\n  display: block;\n  width: 0;\n  height: 0;\n  border: inset 6px;\n  content: '';\n  border-right-width: 0;\n  border-left-style: solid;\n  border-color: transparent transparent transparent #1779ba; }\n\n@media print, screen and (min-width: 40em) {\n  .dropdown.menu.medium-horizontal > li.opens-left > .is-dropdown-submenu {\n    top: 100%;\n    right: 0;\n    left: auto; }\n  .dropdown.menu.medium-horizontal > li.opens-right > .is-dropdown-submenu {\n    top: 100%;\n    right: auto;\n    left: 0; }\n  .dropdown.menu.medium-horizontal > li.is-dropdown-submenu-parent > a {\n    position: relative;\n    padding-right: 1.5rem; }\n  .dropdown.menu.medium-horizontal > li.is-dropdown-submenu-parent > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-bottom-width: 0;\n    border-top-style: solid;\n    border-color: #1779ba transparent transparent;\n    right: 5px;\n    margin-top: -3px; }\n  .dropdown.menu.medium-vertical > li .is-dropdown-submenu {\n    top: 0; }\n  .dropdown.menu.medium-vertical > li.opens-left > .is-dropdown-submenu {\n    right: 100%;\n    left: auto; }\n  .dropdown.menu.medium-vertical > li.opens-right > .is-dropdown-submenu {\n    right: auto;\n    left: 100%; }\n  .dropdown.menu.medium-vertical > li > a::after {\n    right: 14px; }\n  .dropdown.menu.medium-vertical > li.opens-left > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-left-width: 0;\n    border-right-style: solid;\n    border-color: transparent #1779ba transparent transparent; }\n  .dropdown.menu.medium-vertical > li.opens-right > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-right-width: 0;\n    border-left-style: solid;\n    border-color: transparent transparent transparent #1779ba; } }\n\n@media print, screen and (min-width: 64em) {\n  .dropdown.menu.large-horizontal > li.opens-left > .is-dropdown-submenu {\n    top: 100%;\n    right: 0;\n    left: auto; }\n  .dropdown.menu.large-horizontal > li.opens-right > .is-dropdown-submenu {\n    top: 100%;\n    right: auto;\n    left: 0; }\n  .dropdown.menu.large-horizontal > li.is-dropdown-submenu-parent > a {\n    position: relative;\n    padding-right: 1.5rem; }\n  .dropdown.menu.large-horizontal > li.is-dropdown-submenu-parent > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-bottom-width: 0;\n    border-top-style: solid;\n    border-color: #1779ba transparent transparent;\n    right: 5px;\n    margin-top: -3px; }\n  .dropdown.menu.large-vertical > li .is-dropdown-submenu {\n    top: 0; }\n  .dropdown.menu.large-vertical > li.opens-left > .is-dropdown-submenu {\n    right: 100%;\n    left: auto; }\n  .dropdown.menu.large-vertical > li.opens-right > .is-dropdown-submenu {\n    right: auto;\n    left: 100%; }\n  .dropdown.menu.large-vertical > li > a::after {\n    right: 14px; }\n  .dropdown.menu.large-vertical > li.opens-left > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-left-width: 0;\n    border-right-style: solid;\n    border-color: transparent #1779ba transparent transparent; }\n  .dropdown.menu.large-vertical > li.opens-right > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-right-width: 0;\n    border-left-style: solid;\n    border-color: transparent transparent transparent #1779ba; } }\n\n.dropdown.menu.align-right .is-dropdown-submenu.first-sub {\n  top: 100%;\n  right: 0;\n  left: auto; }\n\n.is-dropdown-menu.vertical {\n  width: 100px; }\n  .is-dropdown-menu.vertical.align-right {\n    float: right; }\n\n.is-dropdown-submenu-parent {\n  position: relative; }\n  .is-dropdown-submenu-parent a::after {\n    position: absolute;\n    top: 50%;\n    right: 5px;\n    margin-top: -6px; }\n  .is-dropdown-submenu-parent.opens-inner > .is-dropdown-submenu {\n    top: 100%;\n    left: auto; }\n  .is-dropdown-submenu-parent.opens-left > .is-dropdown-submenu {\n    right: 100%;\n    left: auto; }\n  .is-dropdown-submenu-parent.opens-right > .is-dropdown-submenu {\n    right: auto;\n    left: 100%; }\n\n.is-dropdown-submenu {\n  position: absolute;\n  top: 0;\n  left: 100%;\n  z-index: 1;\n  display: none;\n  min-width: 200px;\n  border: 1px solid #cacaca;\n  background: #fefefe; }\n  .is-dropdown-submenu .is-dropdown-submenu-parent > a::after {\n    right: 14px; }\n  .is-dropdown-submenu .is-dropdown-submenu-parent.opens-left > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-left-width: 0;\n    border-right-style: solid;\n    border-color: transparent #1779ba transparent transparent; }\n  .is-dropdown-submenu .is-dropdown-submenu-parent.opens-right > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-right-width: 0;\n    border-left-style: solid;\n    border-color: transparent transparent transparent #1779ba; }\n  .is-dropdown-submenu .is-dropdown-submenu {\n    margin-top: -1px; }\n  .is-dropdown-submenu > li {\n    width: 100%; }\n  .is-dropdown-submenu.js-dropdown-active {\n    display: block; }\n\n.responsive-embed, .flex-video {\n  position: relative;\n  height: 0;\n  margin-bottom: 1rem;\n  padding-bottom: 75%;\n  overflow: hidden; }\n  .responsive-embed iframe,\n  .responsive-embed object,\n  .responsive-embed embed,\n  .responsive-embed video, .flex-video iframe,\n  .flex-video object,\n  .flex-video embed,\n  .flex-video video {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%; }\n  .responsive-embed.widescreen, .flex-video.widescreen {\n    padding-bottom: 56.25%; }\n\n.label {\n  display: inline-block;\n  padding: 0.33333rem 0.5rem;\n  border-radius: 0;\n  font-size: 0.8rem;\n  line-height: 1;\n  white-space: nowrap;\n  cursor: default;\n  background: #1779ba;\n  color: #fefefe; }\n  .label.primary {\n    background: #1779ba;\n    color: #fefefe; }\n  .label.secondary {\n    background: #767676;\n    color: #fefefe; }\n  .label.success {\n    background: #3adb76;\n    color: #0a0a0a; }\n  .label.warning {\n    background: #ffae00;\n    color: #0a0a0a; }\n  .label.alert {\n    background: #cc4b37;\n    color: #fefefe; }\n\n.media-object {\n  display: block;\n  margin-bottom: 1rem; }\n  .media-object img {\n    max-width: none; }\n  @media screen and (max-width: 39.9375em) {\n    .media-object.stack-for-small .media-object-section {\n      padding: 0;\n      padding-bottom: 1rem;\n      display: block; }\n      .media-object.stack-for-small .media-object-section img {\n        width: 100%; } }\n\n.media-object-section {\n  display: table-cell;\n  vertical-align: top; }\n  .media-object-section:first-child {\n    padding-right: 1rem; }\n  .media-object-section:last-child:not(:nth-child(2)) {\n    padding-left: 1rem; }\n  .media-object-section > :last-child {\n    margin-bottom: 0; }\n  .media-object-section.middle {\n    vertical-align: middle; }\n  .media-object-section.bottom {\n    vertical-align: bottom; }\n\n.is-off-canvas-open {\n  overflow: hidden; }\n\n.js-off-canvas-overlay {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  transition: opacity 0.5s ease, visibility 0.5s ease;\n  background: rgba(254, 254, 254, 0.25);\n  opacity: 0;\n  visibility: hidden;\n  overflow: hidden; }\n  .js-off-canvas-overlay.is-visible {\n    opacity: 1;\n    visibility: visible; }\n  .js-off-canvas-overlay.is-closable {\n    cursor: pointer; }\n  .js-off-canvas-overlay.is-overlay-absolute {\n    position: absolute; }\n  .js-off-canvas-overlay.is-overlay-fixed {\n    position: fixed; }\n\n.off-canvas-wrapper {\n  position: relative;\n  overflow: hidden; }\n\n.off-canvas {\n  position: fixed;\n  z-index: 1;\n  transition: transform 0.5s ease;\n  backface-visibility: hidden;\n  background: #e6e6e6; }\n  [data-whatinput='mouse'] .off-canvas {\n    outline: 0; }\n  .off-canvas.is-transition-overlap {\n    z-index: 10; }\n    .off-canvas.is-transition-overlap.is-open {\n      box-shadow: 0 0 10px rgba(10, 10, 10, 0.7); }\n  .off-canvas.is-open {\n    transform: translate(0, 0); }\n\n.off-canvas-absolute {\n  position: absolute;\n  z-index: 1;\n  transition: transform 0.5s ease;\n  backface-visibility: hidden;\n  background: #e6e6e6; }\n  [data-whatinput='mouse'] .off-canvas-absolute {\n    outline: 0; }\n  .off-canvas-absolute.is-transition-overlap {\n    z-index: 10; }\n    .off-canvas-absolute.is-transition-overlap.is-open {\n      box-shadow: 0 0 10px rgba(10, 10, 10, 0.7); }\n  .off-canvas-absolute.is-open {\n    transform: translate(0, 0); }\n\n.position-left {\n  top: 0;\n  left: 0;\n  width: 250px;\n  height: 100%;\n  transform: translateX(-250px);\n  overflow-y: auto; }\n  .position-left.is-open ~ .off-canvas-content {\n    transform: translateX(250px); }\n  .position-left.is-transition-push::after {\n    position: absolute;\n    top: 0;\n    right: 0;\n    height: 100%;\n    width: 1px;\n    box-shadow: 0 0 10px rgba(10, 10, 10, 0.7);\n    content: \" \"; }\n  .position-left.is-transition-overlap.is-open ~ .off-canvas-content {\n    transform: none; }\n\n.position-right {\n  top: 0;\n  right: 0;\n  width: 250px;\n  height: 100%;\n  transform: translateX(250px);\n  overflow-y: auto; }\n  .position-right.is-open ~ .off-canvas-content {\n    transform: translateX(-250px); }\n  .position-right.is-transition-push::after {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 100%;\n    width: 1px;\n    box-shadow: 0 0 10px rgba(10, 10, 10, 0.7);\n    content: \" \"; }\n  .position-right.is-transition-overlap.is-open ~ .off-canvas-content {\n    transform: none; }\n\n.position-top {\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 250px;\n  transform: translateY(-250px);\n  overflow-x: auto; }\n  .position-top.is-open ~ .off-canvas-content {\n    transform: translateY(250px); }\n  .position-top.is-transition-push::after {\n    position: absolute;\n    bottom: 0;\n    left: 0;\n    height: 1px;\n    width: 100%;\n    box-shadow: 0 0 10px rgba(10, 10, 10, 0.7);\n    content: \" \"; }\n  .position-top.is-transition-overlap.is-open ~ .off-canvas-content {\n    transform: none; }\n\n.position-bottom {\n  bottom: 0;\n  left: 0;\n  width: 100%;\n  height: 250px;\n  transform: translateY(250px);\n  overflow-x: auto; }\n  .position-bottom.is-open ~ .off-canvas-content {\n    transform: translateY(-250px); }\n  .position-bottom.is-transition-push::after {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 1px;\n    width: 100%;\n    box-shadow: 0 0 10px rgba(10, 10, 10, 0.7);\n    content: \" \"; }\n  .position-bottom.is-transition-overlap.is-open ~ .off-canvas-content {\n    transform: none; }\n\n.off-canvas-content {\n  transition: transform 0.5s ease;\n  backface-visibility: hidden; }\n\n@media print, screen and (min-width: 40em) {\n  .position-left.reveal-for-medium {\n    transform: none;\n    z-index: 1; }\n    .position-left.reveal-for-medium ~ .off-canvas-content {\n      margin-left: 250px; }\n  .position-right.reveal-for-medium {\n    transform: none;\n    z-index: 1; }\n    .position-right.reveal-for-medium ~ .off-canvas-content {\n      margin-right: 250px; }\n  .position-top.reveal-for-medium {\n    transform: none;\n    z-index: 1; }\n    .position-top.reveal-for-medium ~ .off-canvas-content {\n      margin-top: 250px; }\n  .position-bottom.reveal-for-medium {\n    transform: none;\n    z-index: 1; }\n    .position-bottom.reveal-for-medium ~ .off-canvas-content {\n      margin-bottom: 250px; } }\n\n@media print, screen and (min-width: 64em) {\n  .position-left.reveal-for-large {\n    transform: none;\n    z-index: 1; }\n    .position-left.reveal-for-large ~ .off-canvas-content {\n      margin-left: 250px; }\n  .position-right.reveal-for-large {\n    transform: none;\n    z-index: 1; }\n    .position-right.reveal-for-large ~ .off-canvas-content {\n      margin-right: 250px; }\n  .position-top.reveal-for-large {\n    transform: none;\n    z-index: 1; }\n    .position-top.reveal-for-large ~ .off-canvas-content {\n      margin-top: 250px; }\n  .position-bottom.reveal-for-large {\n    transform: none;\n    z-index: 1; }\n    .position-bottom.reveal-for-large ~ .off-canvas-content {\n      margin-bottom: 250px; } }\n\n.orbit {\n  position: relative; }\n\n.orbit-container {\n  position: relative;\n  height: 0;\n  margin: 0;\n  list-style: none;\n  overflow: hidden; }\n\n.orbit-slide {\n  width: 100%; }\n  .orbit-slide.no-motionui.is-active {\n    top: 0;\n    left: 0; }\n\n.orbit-figure {\n  margin: 0; }\n\n.orbit-image {\n  width: 100%;\n  max-width: 100%;\n  margin: 0; }\n\n.orbit-caption {\n  position: absolute;\n  bottom: 0;\n  width: 100%;\n  margin-bottom: 0;\n  padding: 1rem;\n  background-color: rgba(10, 10, 10, 0.5);\n  color: #fefefe; }\n\n.orbit-previous, .orbit-next {\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%);\n  z-index: 10;\n  padding: 1rem;\n  color: #fefefe; }\n  [data-whatinput='mouse'] .orbit-previous, [data-whatinput='mouse'] .orbit-next {\n    outline: 0; }\n  .orbit-previous:hover, .orbit-next:hover, .orbit-previous:active, .orbit-next:active, .orbit-previous:focus, .orbit-next:focus {\n    background-color: rgba(10, 10, 10, 0.5); }\n\n.orbit-previous {\n  left: 0; }\n\n.orbit-next {\n  left: auto;\n  right: 0; }\n\n.orbit-bullets {\n  position: relative;\n  margin-top: 0.8rem;\n  margin-bottom: 0.8rem;\n  text-align: center; }\n  [data-whatinput='mouse'] .orbit-bullets {\n    outline: 0; }\n  .orbit-bullets button {\n    width: 1.2rem;\n    height: 1.2rem;\n    margin: 0.1rem;\n    border-radius: 50%;\n    background-color: #cacaca; }\n    .orbit-bullets button:hover {\n      background-color: #8a8a8a; }\n    .orbit-bullets button.is-active {\n      background-color: #8a8a8a; }\n\n.pagination {\n  margin-left: 0;\n  margin-bottom: 1rem; }\n  .pagination::before, .pagination::after {\n    display: table;\n    content: ' '; }\n  .pagination::after {\n    clear: both; }\n  .pagination li {\n    margin-right: 0.0625rem;\n    border-radius: 0;\n    font-size: 0.875rem;\n    display: none; }\n    .pagination li:last-child, .pagination li:first-child {\n      display: inline-block; }\n    @media print, screen and (min-width: 40em) {\n      .pagination li {\n        display: inline-block; } }\n  .pagination a,\n  .pagination button {\n    display: block;\n    padding: 0.1875rem 0.625rem;\n    border-radius: 0;\n    color: #0a0a0a; }\n    .pagination a:hover,\n    .pagination button:hover {\n      background: #e6e6e6; }\n  .pagination .current {\n    padding: 0.1875rem 0.625rem;\n    background: #1779ba;\n    color: #fefefe;\n    cursor: default; }\n  .pagination .disabled {\n    padding: 0.1875rem 0.625rem;\n    color: #cacaca;\n    cursor: not-allowed; }\n    .pagination .disabled:hover {\n      background: transparent; }\n  .pagination .ellipsis::after {\n    padding: 0.1875rem 0.625rem;\n    content: '\\2026';\n    color: #0a0a0a; }\n\n.pagination-previous a::before,\n.pagination-previous.disabled::before {\n  display: inline-block;\n  margin-right: 0.5rem;\n  content: '\\AB'; }\n\n.pagination-next a::after,\n.pagination-next.disabled::after {\n  display: inline-block;\n  margin-left: 0.5rem;\n  content: '\\BB'; }\n\n.progress {\n  height: 1rem;\n  margin-bottom: 1rem;\n  border-radius: 0;\n  background-color: #cacaca; }\n  .progress.primary .progress-meter {\n    background-color: #1779ba; }\n  .progress.secondary .progress-meter {\n    background-color: #767676; }\n  .progress.success .progress-meter {\n    background-color: #3adb76; }\n  .progress.warning .progress-meter {\n    background-color: #ffae00; }\n  .progress.alert .progress-meter {\n    background-color: #cc4b37; }\n\n.progress-meter {\n  position: relative;\n  display: block;\n  width: 0%;\n  height: 100%;\n  background-color: #1779ba; }\n\n.progress-meter-text {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  position: absolute;\n  margin: 0;\n  font-size: 0.75rem;\n  font-weight: bold;\n  color: #fefefe;\n  white-space: nowrap; }\n\n.slider {\n  position: relative;\n  height: 0.5rem;\n  margin-top: 1.25rem;\n  margin-bottom: 2.25rem;\n  background-color: #e6e6e6;\n  cursor: pointer;\n  user-select: none;\n  touch-action: none; }\n\n.slider-fill {\n  position: absolute;\n  top: 0;\n  left: 0;\n  display: inline-block;\n  max-width: 100%;\n  height: 0.5rem;\n  background-color: #cacaca;\n  transition: all 0.2s ease-in-out; }\n  .slider-fill.is-dragging {\n    transition: all 0s linear; }\n\n.slider-handle {\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%);\n  position: absolute;\n  left: 0;\n  z-index: 1;\n  display: inline-block;\n  width: 1.4rem;\n  height: 1.4rem;\n  border-radius: 0;\n  background-color: #1779ba;\n  transition: all 0.2s ease-in-out;\n  touch-action: manipulation; }\n  [data-whatinput='mouse'] .slider-handle {\n    outline: 0; }\n  .slider-handle:hover {\n    background-color: #14679e; }\n  .slider-handle.is-dragging {\n    transition: all 0s linear; }\n\n.slider.disabled,\n.slider[disabled] {\n  opacity: 0.25;\n  cursor: not-allowed; }\n\n.slider.vertical {\n  display: inline-block;\n  width: 0.5rem;\n  height: 12.5rem;\n  margin: 0 1.25rem;\n  transform: scale(1, -1); }\n  .slider.vertical .slider-fill {\n    top: 0;\n    width: 0.5rem;\n    max-height: 100%; }\n  .slider.vertical .slider-handle {\n    position: absolute;\n    top: 0;\n    left: 50%;\n    width: 1.4rem;\n    height: 1.4rem;\n    transform: translateX(-50%); }\n\n.sticky-container {\n  position: relative; }\n\n.sticky {\n  position: relative;\n  z-index: 0;\n  transform: translate3d(0, 0, 0); }\n\n.sticky.is-stuck {\n  position: fixed;\n  z-index: 5; }\n  .sticky.is-stuck.is-at-top {\n    top: 0; }\n  .sticky.is-stuck.is-at-bottom {\n    bottom: 0; }\n\n.sticky.is-anchored {\n  position: relative;\n  right: auto;\n  left: auto; }\n  .sticky.is-anchored.is-at-bottom {\n    bottom: 0; }\n\nbody.is-reveal-open {\n  overflow: hidden; }\n\nhtml.is-reveal-open,\nhtml.is-reveal-open body {\n  min-height: 100%;\n  overflow: hidden;\n  user-select: none; }\n\n.reveal-overlay {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  z-index: 1005;\n  display: none;\n  background-color: rgba(10, 10, 10, 0.45);\n  overflow-y: scroll; }\n\n.reveal {\n  z-index: 1006;\n  backface-visibility: hidden;\n  display: none;\n  padding: 1rem;\n  border: 1px solid #cacaca;\n  border-radius: 0;\n  background-color: #fefefe;\n  position: relative;\n  top: 100px;\n  margin-right: auto;\n  margin-left: auto;\n  overflow-y: auto; }\n  [data-whatinput='mouse'] .reveal {\n    outline: 0; }\n  @media print, screen and (min-width: 40em) {\n    .reveal {\n      min-height: 0; } }\n  .reveal .column, .reveal .columns,\n  .reveal .columns {\n    min-width: 0; }\n  .reveal > :last-child {\n    margin-bottom: 0; }\n  @media print, screen and (min-width: 40em) {\n    .reveal {\n      width: 600px;\n      max-width: 75rem; } }\n  @media print, screen and (min-width: 40em) {\n    .reveal .reveal {\n      right: auto;\n      left: auto;\n      margin: 0 auto; } }\n  .reveal.collapse {\n    padding: 0; }\n  @media print, screen and (min-width: 40em) {\n    .reveal.tiny {\n      width: 30%;\n      max-width: 75rem; } }\n  @media print, screen and (min-width: 40em) {\n    .reveal.small {\n      width: 50%;\n      max-width: 75rem; } }\n  @media print, screen and (min-width: 40em) {\n    .reveal.large {\n      width: 90%;\n      max-width: 75rem; } }\n  .reveal.full {\n    top: 0;\n    left: 0;\n    width: 100%;\n    max-width: none;\n    height: 100%;\n    height: 100vh;\n    min-height: 100vh;\n    margin-left: 0;\n    border: 0;\n    border-radius: 0; }\n  @media screen and (max-width: 39.9375em) {\n    .reveal {\n      top: 0;\n      left: 0;\n      width: 100%;\n      max-width: none;\n      height: 100%;\n      height: 100vh;\n      min-height: 100vh;\n      margin-left: 0;\n      border: 0;\n      border-radius: 0; } }\n  .reveal.without-overlay {\n    position: fixed; }\n\n.switch {\n  height: 2rem;\n  position: relative;\n  margin-bottom: 1rem;\n  outline: 0;\n  font-size: 0.875rem;\n  font-weight: bold;\n  color: #fefefe;\n  user-select: none; }\n\n.switch-input {\n  position: absolute;\n  margin-bottom: 0;\n  opacity: 0; }\n\n.switch-paddle {\n  position: relative;\n  display: block;\n  width: 4rem;\n  height: 2rem;\n  border-radius: 0;\n  background: #cacaca;\n  transition: all 0.25s ease-out;\n  font-weight: inherit;\n  color: inherit;\n  cursor: pointer; }\n  input + .switch-paddle {\n    margin: 0; }\n  .switch-paddle::after {\n    position: absolute;\n    top: 0.25rem;\n    left: 0.25rem;\n    display: block;\n    width: 1.5rem;\n    height: 1.5rem;\n    transform: translate3d(0, 0, 0);\n    border-radius: 0;\n    background: #fefefe;\n    transition: all 0.25s ease-out;\n    content: ''; }\n  input:checked ~ .switch-paddle {\n    background: #1779ba; }\n    input:checked ~ .switch-paddle::after {\n      left: 2.25rem; }\n  [data-whatinput='mouse'] input:focus ~ .switch-paddle {\n    outline: 0; }\n\n.switch-active, .switch-inactive {\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%); }\n\n.switch-active {\n  left: 8%;\n  display: none; }\n  input:checked + label > .switch-active {\n    display: block; }\n\n.switch-inactive {\n  right: 15%; }\n  input:checked + label > .switch-inactive {\n    display: none; }\n\n.switch.tiny {\n  height: 1.5rem; }\n  .switch.tiny .switch-paddle {\n    width: 3rem;\n    height: 1.5rem;\n    font-size: 0.625rem; }\n  .switch.tiny .switch-paddle::after {\n    top: 0.25rem;\n    left: 0.25rem;\n    width: 1rem;\n    height: 1rem; }\n  .switch.tiny input:checked ~ .switch-paddle::after {\n    left: 1.75rem; }\n\n.switch.small {\n  height: 1.75rem; }\n  .switch.small .switch-paddle {\n    width: 3.5rem;\n    height: 1.75rem;\n    font-size: 0.75rem; }\n  .switch.small .switch-paddle::after {\n    top: 0.25rem;\n    left: 0.25rem;\n    width: 1.25rem;\n    height: 1.25rem; }\n  .switch.small input:checked ~ .switch-paddle::after {\n    left: 2rem; }\n\n.switch.large {\n  height: 2.5rem; }\n  .switch.large .switch-paddle {\n    width: 5rem;\n    height: 2.5rem;\n    font-size: 1rem; }\n  .switch.large .switch-paddle::after {\n    top: 0.25rem;\n    left: 0.25rem;\n    width: 2rem;\n    height: 2rem; }\n  .switch.large input:checked ~ .switch-paddle::after {\n    left: 2.75rem; }\n\ntable {\n  width: 100%;\n  margin-bottom: 1rem;\n  border-radius: 0; }\n  table thead,\n  table tbody,\n  table tfoot {\n    border: 1px solid #f1f1f1;\n    background-color: #fefefe; }\n  table caption {\n    padding: 0.5rem 0.625rem 0.625rem;\n    font-weight: bold; }\n  table thead {\n    background: #f8f8f8;\n    color: #0a0a0a; }\n  table tfoot {\n    background: #f1f1f1;\n    color: #0a0a0a; }\n  table thead tr,\n  table tfoot tr {\n    background: transparent; }\n  table thead th,\n  table thead td,\n  table tfoot th,\n  table tfoot td {\n    padding: 0.5rem 0.625rem 0.625rem;\n    font-weight: bold;\n    text-align: left; }\n  table tbody th,\n  table tbody td {\n    padding: 0.5rem 0.625rem 0.625rem; }\n  table tbody tr:nth-child(even) {\n    border-bottom: 0;\n    background-color: #f1f1f1; }\n  table.unstriped tbody {\n    background-color: #fefefe; }\n    table.unstriped tbody tr {\n      border-bottom: 0;\n      border-bottom: 1px solid #f1f1f1;\n      background-color: #fefefe; }\n\n@media screen and (max-width: 63.9375em) {\n  table.stack thead {\n    display: none; }\n  table.stack tfoot {\n    display: none; }\n  table.stack tr,\n  table.stack th,\n  table.stack td {\n    display: block; }\n  table.stack td {\n    border-top: 0; } }\n\ntable.scroll {\n  display: block;\n  width: 100%;\n  overflow-x: auto; }\n\ntable.hover thead tr:hover {\n  background-color: #f3f3f3; }\n\ntable.hover tfoot tr:hover {\n  background-color: #ececec; }\n\ntable.hover tbody tr:hover {\n  background-color: #f9f9f9; }\n\ntable.hover:not(.unstriped) tr:nth-of-type(even):hover {\n  background-color: #ececec; }\n\n.table-scroll {\n  overflow-x: auto; }\n  .table-scroll table {\n    width: auto; }\n\n.tabs {\n  margin: 0;\n  border: 1px solid #e6e6e6;\n  background: #fefefe;\n  list-style-type: none; }\n  .tabs::before, .tabs::after {\n    display: table;\n    content: ' '; }\n  .tabs::after {\n    clear: both; }\n\n.tabs.vertical > li {\n  display: block;\n  float: none;\n  width: auto; }\n\n.tabs.simple > li > a {\n  padding: 0; }\n  .tabs.simple > li > a:hover {\n    background: transparent; }\n\n.tabs.primary {\n  background: #1779ba; }\n  .tabs.primary > li > a {\n    color: #fefefe; }\n    .tabs.primary > li > a:hover, .tabs.primary > li > a:focus {\n      background: #1673b1; }\n\n.tabs-title {\n  float: left; }\n  .tabs-title > a {\n    display: block;\n    padding: 1.25rem 1.5rem;\n    font-size: 0.75rem;\n    line-height: 1;\n    color: #1779ba; }\n    .tabs-title > a:hover {\n      background: #fefefe;\n      color: #1468a0; }\n    .tabs-title > a:focus, .tabs-title > a[aria-selected='true'] {\n      background: #e6e6e6;\n      color: #1779ba; }\n\n.tabs-content {\n  border: 1px solid #e6e6e6;\n  border-top: 0;\n  background: #fefefe;\n  color: #0a0a0a;\n  transition: all 0.5s ease; }\n\n.tabs-content.vertical {\n  border: 1px solid #e6e6e6;\n  border-left: 0; }\n\n.tabs-panel {\n  display: none;\n  padding: 1rem; }\n  .tabs-panel[aria-hidden=\"false\"] {\n    display: block; }\n\n.thumbnail {\n  display: inline-block;\n  max-width: 100%;\n  margin-bottom: 1rem;\n  border: solid 4px #fefefe;\n  border-radius: 0;\n  box-shadow: 0 0 0 1px rgba(10, 10, 10, 0.2);\n  line-height: 0; }\n\na.thumbnail {\n  transition: box-shadow 200ms ease-out; }\n  a.thumbnail:hover, a.thumbnail:focus {\n    box-shadow: 0 0 6px 1px rgba(23, 121, 186, 0.5); }\n  a.thumbnail image {\n    box-shadow: none; }\n\n.title-bar {\n  padding: 0.5rem;\n  background: #0a0a0a;\n  color: #fefefe; }\n  .title-bar::before, .title-bar::after {\n    display: table;\n    content: ' '; }\n  .title-bar::after {\n    clear: both; }\n  .title-bar .menu-icon {\n    margin-left: 0.25rem;\n    margin-right: 0.25rem; }\n\n.title-bar-left {\n  float: left; }\n\n.title-bar-right {\n  float: right;\n  text-align: right; }\n\n.title-bar-title {\n  display: inline-block;\n  vertical-align: middle;\n  font-weight: bold; }\n\n.has-tip {\n  position: relative;\n  display: inline-block;\n  border-bottom: dotted 1px #8a8a8a;\n  font-weight: bold;\n  cursor: help; }\n\n.tooltip {\n  position: absolute;\n  top: calc(100% + 0.6495rem);\n  z-index: 1200;\n  max-width: 10rem;\n  padding: 0.75rem;\n  border-radius: 0;\n  background-color: #0a0a0a;\n  font-size: 80%;\n  color: #fefefe; }\n  .tooltip::before {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 0.75rem;\n    content: '';\n    border-top-width: 0;\n    border-bottom-style: solid;\n    border-color: transparent transparent #0a0a0a;\n    position: absolute;\n    bottom: 100%;\n    left: 50%;\n    transform: translateX(-50%); }\n  .tooltip.top::before {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 0.75rem;\n    content: '';\n    border-bottom-width: 0;\n    border-top-style: solid;\n    border-color: #0a0a0a transparent transparent;\n    top: 100%;\n    bottom: auto; }\n  .tooltip.left::before {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 0.75rem;\n    content: '';\n    border-right-width: 0;\n    border-left-style: solid;\n    border-color: transparent transparent transparent #0a0a0a;\n    top: 50%;\n    bottom: auto;\n    left: 100%;\n    transform: translateY(-50%); }\n  .tooltip.right::before {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 0.75rem;\n    content: '';\n    border-left-width: 0;\n    border-right-style: solid;\n    border-color: transparent #0a0a0a transparent transparent;\n    top: 50%;\n    right: 100%;\n    bottom: auto;\n    left: auto;\n    transform: translateY(-50%); }\n\n.top-bar {\n  padding: 0.5rem; }\n  .top-bar::before, .top-bar::after {\n    display: table;\n    content: ' '; }\n  .top-bar::after {\n    clear: both; }\n  .top-bar,\n  .top-bar ul {\n    background-color: #e6e6e6; }\n  .top-bar input {\n    max-width: 200px;\n    margin-right: 1rem; }\n  .top-bar .input-group-field {\n    width: 100%;\n    margin-right: 0; }\n  .top-bar input.button {\n    width: auto; }\n  .top-bar .top-bar-left,\n  .top-bar .top-bar-right {\n    width: 100%; }\n  @media print, screen and (min-width: 40em) {\n    .top-bar .top-bar-left,\n    .top-bar .top-bar-right {\n      width: auto; } }\n  @media screen and (max-width: 63.9375em) {\n    .top-bar.stacked-for-medium .top-bar-left,\n    .top-bar.stacked-for-medium .top-bar-right {\n      width: 100%; } }\n  @media screen and (max-width: 74.9375em) {\n    .top-bar.stacked-for-large .top-bar-left,\n    .top-bar.stacked-for-large .top-bar-right {\n      width: 100%; } }\n\n.top-bar-title {\n  display: inline-block;\n  float: left;\n  padding: 0.5rem 1rem 0.5rem 0; }\n  .top-bar-title .menu-icon {\n    bottom: 2px; }\n\n.top-bar-left {\n  float: left; }\n\n.top-bar-right {\n  float: right; }\n\n.hide {\n  display: none !important; }\n\n.invisible {\n  visibility: hidden; }\n\n@media screen and (max-width: 39.9375em) {\n  .hide-for-small-only {\n    display: none !important; } }\n\n@media screen and (max-width: 0em), screen and (min-width: 40em) {\n  .show-for-small-only {\n    display: none !important; } }\n\n@media print, screen and (min-width: 40em) {\n  .hide-for-medium {\n    display: none !important; } }\n\n@media screen and (max-width: 39.9375em) {\n  .show-for-medium {\n    display: none !important; } }\n\n@media screen and (min-width: 40em) and (max-width: 63.9375em) {\n  .hide-for-medium-only {\n    display: none !important; } }\n\n@media screen and (max-width: 39.9375em), screen and (min-width: 64em) {\n  .show-for-medium-only {\n    display: none !important; } }\n\n@media print, screen and (min-width: 64em) {\n  .hide-for-large {\n    display: none !important; } }\n\n@media screen and (max-width: 63.9375em) {\n  .show-for-large {\n    display: none !important; } }\n\n@media screen and (min-width: 64em) and (max-width: 74.9375em) {\n  .hide-for-large-only {\n    display: none !important; } }\n\n@media screen and (max-width: 63.9375em), screen and (min-width: 75em) {\n  .show-for-large-only {\n    display: none !important; } }\n\n.show-for-sr,\n.show-on-focus {\n  position: absolute !important;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0); }\n\n.show-on-focus:active, .show-on-focus:focus {\n  position: static !important;\n  width: auto;\n  height: auto;\n  overflow: visible;\n  clip: auto; }\n\n.show-for-landscape,\n.hide-for-portrait {\n  display: block !important; }\n  @media screen and (orientation: landscape) {\n    .show-for-landscape,\n    .hide-for-portrait {\n      display: block !important; } }\n  @media screen and (orientation: portrait) {\n    .show-for-landscape,\n    .hide-for-portrait {\n      display: none !important; } }\n\n.hide-for-landscape,\n.show-for-portrait {\n  display: none !important; }\n  @media screen and (orientation: landscape) {\n    .hide-for-landscape,\n    .show-for-portrait {\n      display: none !important; } }\n  @media screen and (orientation: portrait) {\n    .hide-for-landscape,\n    .show-for-portrait {\n      display: block !important; } }\n\n.float-left {\n  float: left !important; }\n\n.float-right {\n  float: right !important; }\n\n.float-center {\n  display: block;\n  margin-right: auto;\n  margin-left: auto; }\n\n.clearfix::before, .clearfix::after {\n  display: table;\n  content: ' '; }\n\n.clearfix::after {\n  clear: both; }\n\n.container {\n  background-color: #e6e6e6;\n  border: 1px solid #eee;\n  border-radius: 5px;\n  padding: 0;\n  margin-bottom: 2rem; }\n\n.container__header {\n  border-bottom: 1px solid #eee;\n  padding: 1rem; }\n  .container__header label {\n    cursor: pointer;\n    font-size: 1rem; }\n  .container__header > :last-child {\n    align-items: center;\n    display: flex; }\n\n.container__message {\n  color: #aaa;\n  margin: 2rem auto;\n  text-align: center; }\n\n.container__footer {\n  padding: 1rem 1rem 0 1rem;\n  border-top: 1px solid #eee; }\n\n.page-title {\n  text-align: center;\n  padding: 2rem 0;\n  margin: 0; }\n\n.todo {\n  display: flex;\n  cursor: pointer;\n  align-items: center;\n  padding: 1rem;\n  transition: background .3s ease; }\n  .todo p, .todo input {\n    margin: 0; }\n  .todo > :first-child {\n    margin-right: 1rem; }\n  .todo:hover {\n    background-color: #f0f0f0; }\n\n.todo__subtext {\n  color: #999; }\n\n.todo-completed p, .todo-completed .todo__subtext {\n  color: #aaa;\n  text-decoration: line-through; }\n", ""]);
-
-	// exports
-
-
-/***/ },
-/* 392 */
-/***/ function(module, exports) {
-
-	/*
-		MIT License http://www.opensource.org/licenses/mit-license.php
-		Author Tobias Koppers @sokra
-	*/
-	// css base code, injected by the css-loader
-	module.exports = function() {
-		var list = [];
-
-		// return the list of modules as css string
-		list.toString = function toString() {
-			var result = [];
-			for(var i = 0; i < this.length; i++) {
-				var item = this[i];
-				if(item[2]) {
-					result.push("@media " + item[2] + "{" + item[1] + "}");
-				} else {
-					result.push(item[1]);
-				}
-			}
-			return result.join("");
-		};
-
-		// import a list of modules into the list
-		list.i = function(modules, mediaQuery) {
-			if(typeof modules === "string")
-				modules = [[null, modules, ""]];
-			var alreadyImportedModules = {};
-			for(var i = 0; i < this.length; i++) {
-				var id = this[i][0];
-				if(typeof id === "number")
-					alreadyImportedModules[id] = true;
-			}
-			for(i = 0; i < modules.length; i++) {
-				var item = modules[i];
-				// skip already imported module
-				// this implementation is not 100% perfect for weird media query combinations
-				//  when a module is imported multiple times with different media queries.
-				//  I hope this will never occur (Hey this way we have smaller bundles)
-				if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
-					if(mediaQuery && !item[2]) {
-						item[2] = mediaQuery;
-					} else if(mediaQuery) {
-						item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
-					}
-					list.push(item);
-				}
-			}
-		};
-		return list;
-	};
-
-
-/***/ },
-/* 393 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/*
-		MIT License http://www.opensource.org/licenses/mit-license.php
-		Author Tobias Koppers @sokra
-	*/
-	var stylesInDom = {},
-		memoize = function(fn) {
-			var memo;
-			return function () {
-				if (typeof memo === "undefined") memo = fn.apply(this, arguments);
-				return memo;
-			};
-		},
-		isOldIE = memoize(function() {
-			return /msie [6-9]\b/.test(window.navigator.userAgent.toLowerCase());
-		}),
-		getHeadElement = memoize(function () {
-			return document.head || document.getElementsByTagName("head")[0];
-		}),
-		singletonElement = null,
-		singletonCounter = 0,
-		styleElementsInsertedAtTop = [];
-
-	module.exports = function(list, options) {
-		if(false) {
-			if(typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
-		}
-
-		options = options || {};
-		// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-		// tags it will allow on a page
-		if (typeof options.singleton === "undefined") options.singleton = isOldIE();
-
-		// By default, add <style> tags to the bottom of <head>.
-		if (typeof options.insertAt === "undefined") options.insertAt = "bottom";
-
-		var styles = listToStyles(list);
-		addStylesToDom(styles, options);
-
-		return function update(newList) {
-			var mayRemove = [];
-			for(var i = 0; i < styles.length; i++) {
-				var item = styles[i];
-				var domStyle = stylesInDom[item.id];
-				domStyle.refs--;
-				mayRemove.push(domStyle);
-			}
-			if(newList) {
-				var newStyles = listToStyles(newList);
-				addStylesToDom(newStyles, options);
-			}
-			for(var i = 0; i < mayRemove.length; i++) {
-				var domStyle = mayRemove[i];
-				if(domStyle.refs === 0) {
-					for(var j = 0; j < domStyle.parts.length; j++)
-						domStyle.parts[j]();
-					delete stylesInDom[domStyle.id];
-				}
-			}
-		};
-	}
-
-	function addStylesToDom(styles, options) {
-		for(var i = 0; i < styles.length; i++) {
-			var item = styles[i];
-			var domStyle = stylesInDom[item.id];
-			if(domStyle) {
-				domStyle.refs++;
-				for(var j = 0; j < domStyle.parts.length; j++) {
-					domStyle.parts[j](item.parts[j]);
-				}
-				for(; j < item.parts.length; j++) {
-					domStyle.parts.push(addStyle(item.parts[j], options));
-				}
-			} else {
-				var parts = [];
-				for(var j = 0; j < item.parts.length; j++) {
-					parts.push(addStyle(item.parts[j], options));
-				}
-				stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
-			}
-		}
-	}
-
-	function listToStyles(list) {
-		var styles = [];
-		var newStyles = {};
-		for(var i = 0; i < list.length; i++) {
-			var item = list[i];
-			var id = item[0];
-			var css = item[1];
-			var media = item[2];
-			var sourceMap = item[3];
-			var part = {css: css, media: media, sourceMap: sourceMap};
-			if(!newStyles[id])
-				styles.push(newStyles[id] = {id: id, parts: [part]});
-			else
-				newStyles[id].parts.push(part);
-		}
-		return styles;
-	}
-
-	function insertStyleElement(options, styleElement) {
-		var head = getHeadElement();
-		var lastStyleElementInsertedAtTop = styleElementsInsertedAtTop[styleElementsInsertedAtTop.length - 1];
-		if (options.insertAt === "top") {
-			if(!lastStyleElementInsertedAtTop) {
-				head.insertBefore(styleElement, head.firstChild);
-			} else if(lastStyleElementInsertedAtTop.nextSibling) {
-				head.insertBefore(styleElement, lastStyleElementInsertedAtTop.nextSibling);
-			} else {
-				head.appendChild(styleElement);
-			}
-			styleElementsInsertedAtTop.push(styleElement);
-		} else if (options.insertAt === "bottom") {
-			head.appendChild(styleElement);
-		} else {
-			throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
-		}
-	}
-
-	function removeStyleElement(styleElement) {
-		styleElement.parentNode.removeChild(styleElement);
-		var idx = styleElementsInsertedAtTop.indexOf(styleElement);
-		if(idx >= 0) {
-			styleElementsInsertedAtTop.splice(idx, 1);
-		}
-	}
-
-	function createStyleElement(options) {
-		var styleElement = document.createElement("style");
-		styleElement.type = "text/css";
-		insertStyleElement(options, styleElement);
-		return styleElement;
-	}
-
-	function createLinkElement(options) {
-		var linkElement = document.createElement("link");
-		linkElement.rel = "stylesheet";
-		insertStyleElement(options, linkElement);
-		return linkElement;
-	}
-
-	function addStyle(obj, options) {
-		var styleElement, update, remove;
-
-		if (options.singleton) {
-			var styleIndex = singletonCounter++;
-			styleElement = singletonElement || (singletonElement = createStyleElement(options));
-			update = applyToSingletonTag.bind(null, styleElement, styleIndex, false);
-			remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true);
-		} else if(obj.sourceMap &&
-			typeof URL === "function" &&
-			typeof URL.createObjectURL === "function" &&
-			typeof URL.revokeObjectURL === "function" &&
-			typeof Blob === "function" &&
-			typeof btoa === "function") {
-			styleElement = createLinkElement(options);
-			update = updateLink.bind(null, styleElement);
-			remove = function() {
-				removeStyleElement(styleElement);
-				if(styleElement.href)
-					URL.revokeObjectURL(styleElement.href);
-			};
-		} else {
-			styleElement = createStyleElement(options);
-			update = applyToTag.bind(null, styleElement);
-			remove = function() {
-				removeStyleElement(styleElement);
-			};
-		}
-
-		update(obj);
-
-		return function updateStyle(newObj) {
-			if(newObj) {
-				if(newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap)
-					return;
-				update(obj = newObj);
-			} else {
-				remove();
-			}
-		};
-	}
-
-	var replaceText = (function () {
-		var textStore = [];
-
-		return function (index, replacement) {
-			textStore[index] = replacement;
-			return textStore.filter(Boolean).join('\n');
-		};
-	})();
-
-	function applyToSingletonTag(styleElement, index, remove, obj) {
-		var css = remove ? "" : obj.css;
-
-		if (styleElement.styleSheet) {
-			styleElement.styleSheet.cssText = replaceText(index, css);
-		} else {
-			var cssNode = document.createTextNode(css);
-			var childNodes = styleElement.childNodes;
-			if (childNodes[index]) styleElement.removeChild(childNodes[index]);
-			if (childNodes.length) {
-				styleElement.insertBefore(cssNode, childNodes[index]);
-			} else {
-				styleElement.appendChild(cssNode);
-			}
-		}
-	}
-
-	function applyToTag(styleElement, obj) {
-		var css = obj.css;
-		var media = obj.media;
-
-		if(media) {
-			styleElement.setAttribute("media", media)
-		}
-
-		if(styleElement.styleSheet) {
-			styleElement.styleSheet.cssText = css;
-		} else {
-			while(styleElement.firstChild) {
-				styleElement.removeChild(styleElement.firstChild);
-			}
-			styleElement.appendChild(document.createTextNode(css));
-		}
-	}
-
-	function updateLink(linkElement, obj) {
-		var css = obj.css;
-		var sourceMap = obj.sourceMap;
-
-		if(sourceMap) {
-			// http://stackoverflow.com/a/26603875
-			css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
-		}
-
-		var blob = new Blob([css], { type: "text/css" });
-
-		var oldSrc = linkElement.href;
-
-		linkElement.href = URL.createObjectURL(blob);
-
-		if(oldSrc)
-			URL.revokeObjectURL(oldSrc);
-	}
-
-
-/***/ },
-/* 394 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -43655,7 +42782,7 @@
 	});
 	exports.firebaseRef = undefined;
 
-	var _firebase = __webpack_require__(395);
+	var _firebase = __webpack_require__(380);
 
 	var _firebase2 = _interopRequireDefault(_firebase);
 
@@ -43677,7 +42804,7 @@
 	exports.default = _firebase2.default;
 
 /***/ },
-/* 395 */
+/* 380 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -43687,16 +42814,16 @@
 	 *
 	 *   firebase = require('firebase');
 	 */
-	var firebase = __webpack_require__(396);
-	__webpack_require__(397);
-	__webpack_require__(398);
-	__webpack_require__(399);
-	__webpack_require__(400);
+	var firebase = __webpack_require__(381);
+	__webpack_require__(382);
+	__webpack_require__(383);
+	__webpack_require__(384);
+	__webpack_require__(385);
 	module.exports = firebase;
 
 
 /***/ },
-/* 396 */
+/* 381 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {var firebase = (function(){
@@ -43735,10 +42862,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 397 */
+/* 382 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(396);
+	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(381);
 	(function(){
 	/*! @license Firebase v3.6.8
 	    Build: 3.6.8-rc.1
@@ -43983,10 +43110,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 398 */
+/* 383 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(396);
+	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(381);
 	(function(){
 	/*! @license Firebase v3.6.8
 	    Build: 3.6.8-rc.1
@@ -44254,10 +43381,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 399 */
+/* 384 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(396);
+	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(381);
 	(function(){
 	/*! @license Firebase v3.6.8
 	    Build: 3.6.8-rc.1
@@ -44315,10 +43442,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 400 */
+/* 385 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(396);
+	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(381);
 	(function(){
 	/*! @license Firebase v3.6.8
 	    Build: 3.6.8-rc.1
@@ -44361,7 +43488,542 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 401 */
+/* 386 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var $ = __webpack_require__(7);
+	module.exports = {
+	  setTodos: function setTodos(todos) {
+	    if ($.isArray(todos)) {
+	      localStorage.setItem('todos', JSON.stringify(todos));
+	      return todos;
+	    }
+	  },
+
+	  getTodos: function getTodos() {
+	    var stringTodos = localStorage.getItem('todos');
+	    var todos = [];
+
+	    try {
+	      todos = JSON.parse(stringTodos);
+	    } catch (e) {}
+	    return $.isArray(todos) ? todos : [];
+	  },
+	  filterTodos: function filterTodos(todos, showCompleted, searchText) {
+	    var filteredTodos = todos;
+	    //filter by showCompleted
+	    filteredTodos = filteredTodos.filter(function (todo) {
+	      return !todo.completed || showCompleted;
+	    });
+
+	    //Filter by searchText
+
+	    filteredTodos = filteredTodos.filter(function (todo) {
+	      var doo = todo.text.toLowerCase();
+	      if (searchText !== "" && doo.indexOf(searchText) > -1) {
+	        return todo;
+	      } else if (searchText === "") {
+	        return todo;
+	      }
+	    });
+
+	    //sort todos with non-completed first
+	    filteredTodos.sort(function (a, b) {
+	      if (!a.completed && b.completed) {
+	        return -1;
+	      } else if (a.completed && !b.completed) {
+	        return 1;
+	      } else {
+	        return 0;
+	      }
+	    });
+
+	    return filteredTodos;
+	  }
+	};
+
+/***/ },
+/* 387 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var React = __webpack_require__(8);
+
+	var _require = __webpack_require__(343),
+	    connect = _require.connect;
+
+	var actions = __webpack_require__(378);
+
+	var AddTodo = exports.AddTodo = React.createClass({
+	  displayName: 'AddTodo',
+
+	  handleSubmit: function handleSubmit(e) {
+	    e.preventDefault();
+	    var dispatch = this.props.dispatch;
+
+	    var todoText = this.refs.todoText.value;
+	    if (todoText.length > 0) {
+	      this.refs.todoText.value = '';
+	      dispatch(actions.startAddTodo(todoText));
+	    } else {
+	      this.refs.todoText.focus();
+	    }
+	  },
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      { className: 'container__footer' },
+	      React.createElement(
+	        'form',
+	        { className: 'AddTodoForm', onSubmit: this.handleSubmit },
+	        React.createElement('input', { type: 'text', ref: 'todoText', placeholder: 'What do you need to do?' }),
+	        React.createElement(
+	          'button',
+	          { className: 'button expanded' },
+	          'Add Todo'
+	        )
+	      )
+	    );
+	  }
+	});
+
+	exports.default = connect()(AddTodo);
+
+/***/ },
+/* 388 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var React = __webpack_require__(8);
+
+	var _require = __webpack_require__(343),
+	    connect = _require.connect;
+
+	var actions = __webpack_require__(378);
+
+	var TodoSearch = exports.TodoSearch = React.createClass({
+	  displayName: 'TodoSearch',
+
+	  render: function render() {
+	    var _this = this;
+
+	    var _props = this.props,
+	        dispatch = _props.dispatch,
+	        showCompleted = _props.showCompleted,
+	        searchText = _props.searchText;
+
+
+	    return React.createElement(
+	      'div',
+	      { className: 'container__header' },
+	      React.createElement(
+	        'div',
+	        null,
+	        React.createElement('input', { type: 'search', ref: 'searchText', value: searchText, placeholder: 'Search todos', onChange: function onChange() {
+	            var searchText = _this.refs.searchText.value;
+
+	            dispatch(actions.setSearchText(searchText));
+	          } })
+	      ),
+	      React.createElement(
+	        'div',
+	        null,
+	        React.createElement(
+	          'label',
+	          null,
+	          React.createElement('input', { type: 'checkbox', ref: 'showCompleted', checked: showCompleted, onChange: function onChange() {
+	              dispatch(actions.toggleShowCompleted());
+	            } }),
+	          'Sow completed todos'
+	        )
+	      )
+	    );
+	  }
+	});
+
+	exports.default = connect(function (state) {
+	  return {
+	    showCompleted: state.showCompleted,
+	    searchText: state.searchText
+	  };
+	})(TodoSearch);
+
+/***/ },
+/* 389 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var v1 = __webpack_require__(390);
+	var v4 = __webpack_require__(393);
+
+	var uuid = v4;
+	uuid.v1 = v1;
+	uuid.v4 = v4;
+
+	module.exports = uuid;
+
+
+/***/ },
+/* 390 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// Unique ID creation requires a high quality random # generator.  We feature
+	// detect to determine the best RNG source, normalizing to a function that
+	// returns 128-bits of randomness, since that's what's usually required
+	var rng = __webpack_require__(391);
+	var bytesToUuid = __webpack_require__(392);
+
+	// **`v1()` - Generate time-based UUID**
+	//
+	// Inspired by https://github.com/LiosK/UUID.js
+	// and http://docs.python.org/library/uuid.html
+
+	// random #'s we need to init node and clockseq
+	var _seedBytes = rng();
+
+	// Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+	var _nodeId = [
+	  _seedBytes[0] | 0x01,
+	  _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
+	];
+
+	// Per 4.2.2, randomize (14 bit) clockseq
+	var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
+
+	// Previous uuid creation time
+	var _lastMSecs = 0, _lastNSecs = 0;
+
+	// See https://github.com/broofa/node-uuid for API details
+	function v1(options, buf, offset) {
+	  var i = buf && offset || 0;
+	  var b = buf || [];
+
+	  options = options || {};
+
+	  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
+
+	  // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+	  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+	  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+	  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+	  var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
+
+	  // Per 4.2.1.2, use count of uuid's generated during the current clock
+	  // cycle to simulate higher resolution clock
+	  var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
+
+	  // Time since last uuid creation (in msecs)
+	  var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs)/10000;
+
+	  // Per 4.2.1.2, Bump clockseq on clock regression
+	  if (dt < 0 && options.clockseq === undefined) {
+	    clockseq = clockseq + 1 & 0x3fff;
+	  }
+
+	  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+	  // time interval
+	  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+	    nsecs = 0;
+	  }
+
+	  // Per 4.2.1.2 Throw error if too many uuids are requested
+	  if (nsecs >= 10000) {
+	    throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
+	  }
+
+	  _lastMSecs = msecs;
+	  _lastNSecs = nsecs;
+	  _clockseq = clockseq;
+
+	  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+	  msecs += 12219292800000;
+
+	  // `time_low`
+	  var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+	  b[i++] = tl >>> 24 & 0xff;
+	  b[i++] = tl >>> 16 & 0xff;
+	  b[i++] = tl >>> 8 & 0xff;
+	  b[i++] = tl & 0xff;
+
+	  // `time_mid`
+	  var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
+	  b[i++] = tmh >>> 8 & 0xff;
+	  b[i++] = tmh & 0xff;
+
+	  // `time_high_and_version`
+	  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+	  b[i++] = tmh >>> 16 & 0xff;
+
+	  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+	  b[i++] = clockseq >>> 8 | 0x80;
+
+	  // `clock_seq_low`
+	  b[i++] = clockseq & 0xff;
+
+	  // `node`
+	  var node = options.node || _nodeId;
+	  for (var n = 0; n < 6; ++n) {
+	    b[i + n] = node[n];
+	  }
+
+	  return buf ? buf : bytesToUuid(b);
+	}
+
+	module.exports = v1;
+
+
+/***/ },
+/* 391 */
+/***/ function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {// Unique ID creation requires a high quality random # generator.  In the
+	// browser this is a little complicated due to unknown quality of Math.random()
+	// and inconsistent support for the `crypto` API.  We do the best we can via
+	// feature-detection
+	var rng;
+
+	var crypto = global.crypto || global.msCrypto; // for IE 11
+	if (crypto && crypto.getRandomValues) {
+	  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
+	  var rnds8 = new Uint8Array(16);
+	  rng = function whatwgRNG() {
+	    crypto.getRandomValues(rnds8);
+	    return rnds8;
+	  };
+	}
+
+	if (!rng) {
+	  // Math.random()-based (RNG)
+	  //
+	  // If all else fails, use Math.random().  It's fast, but is of unspecified
+	  // quality.
+	  var  rnds = new Array(16);
+	  rng = function() {
+	    for (var i = 0, r; i < 16; i++) {
+	      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
+	      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
+	    }
+
+	    return rnds;
+	  };
+	}
+
+	module.exports = rng;
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 392 */
+/***/ function(module, exports) {
+
+	/**
+	 * Convert array of 16 byte values to UUID string format of the form:
+	 * XXXXXXXX-XXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+	 */
+	var byteToHex = [];
+	for (var i = 0; i < 256; ++i) {
+	  byteToHex[i] = (i + 0x100).toString(16).substr(1);
+	}
+
+	function bytesToUuid(buf, offset) {
+	  var i = offset || 0;
+	  var bth = byteToHex;
+	  return  bth[buf[i++]] + bth[buf[i++]] +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] +
+	          bth[buf[i++]] + bth[buf[i++]] +
+	          bth[buf[i++]] + bth[buf[i++]];
+	}
+
+	module.exports = bytesToUuid;
+
+
+/***/ },
+/* 393 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var rng = __webpack_require__(391);
+	var bytesToUuid = __webpack_require__(392);
+
+	function v4(options, buf, offset) {
+	  var i = buf && offset || 0;
+
+	  if (typeof(options) == 'string') {
+	    buf = options == 'binary' ? new Array(16) : null;
+	    options = null;
+	  }
+	  options = options || {};
+
+	  var rnds = options.random || (options.rng || rng)();
+
+	  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+	  rnds[6] = (rnds[6] & 0x0f) | 0x40;
+	  rnds[8] = (rnds[8] & 0x3f) | 0x80;
+
+	  // Copy bytes to buffer, if provided
+	  if (buf) {
+	    for (var ii = 0; ii < 16; ++ii) {
+	      buf[i + ii] = rnds[ii];
+	    }
+	  }
+
+	  return buf || bytesToUuid(rnds);
+	}
+
+	module.exports = v4;
+
+
+/***/ },
+/* 394 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.configure = undefined;
+
+	var _redux = __webpack_require__(352);
+
+	var redux = _interopRequireWildcard(_redux);
+
+	var _reduxThunk = __webpack_require__(395);
+
+	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
+
+	var _reducers = __webpack_require__(396);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	var configure = exports.configure = function configure() {
+	  var initialState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+	  var reducer = redux.combineReducers({
+	    searchText: _reducers.searchTextReducer,
+	    showCompleted: _reducers.showCompletedReducer,
+	    todos: _reducers.todosReducer
+	  });
+
+	  var store = redux.createStore(reducer, initialState, redux.compose(redux.applyMiddleware(_reduxThunk2.default), window.devToolsExtension ? window.devToolsExtension() : function (f) {
+	    return f;
+	  }));
+
+	  return store;
+	};
+
+/***/ },
+/* 395 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	exports.__esModule = true;
+	function createThunkMiddleware(extraArgument) {
+	  return function (_ref) {
+	    var dispatch = _ref.dispatch,
+	        getState = _ref.getState;
+	    return function (next) {
+	      return function (action) {
+	        if (typeof action === 'function') {
+	          return action(dispatch, getState, extraArgument);
+	        }
+
+	        return next(action);
+	      };
+	    };
+	  };
+	}
+
+	var thunk = createThunkMiddleware();
+	thunk.withExtraArgument = createThunkMiddleware;
+
+	exports['default'] = thunk;
+
+/***/ },
+/* 396 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	var uuid = __webpack_require__(397);
+	var moment = __webpack_require__(232);
+
+	var searchTextReducer = exports.searchTextReducer = function searchTextReducer() {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case 'SET_SEARCH_TEXT':
+	      return action.searchText;
+	    default:
+	      return state;
+	  };
+	};
+
+	var showCompletedReducer = exports.showCompletedReducer = function showCompletedReducer() {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case 'TOGGLE_SHOW_COMPLETED':
+	      return !state;
+
+	    default:
+	      return state;
+
+	  };
+	};
+
+	var todosReducer = exports.todosReducer = function todosReducer() {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case 'ADD_TODO':
+	      return [].concat(_toConsumableArray(state), [action.todo]);
+	    case 'UPDATE_TODO':
+
+	      return state.map(function (todo) {
+	        if (todo.id === action.id) {
+	          return _extends({}, todo, action.updates);
+	        } else {
+	          return todo;
+	        }
+	      });
+
+	    case 'ADD_TODOS':
+	      return [].concat(_toConsumableArray(state), _toConsumableArray(action.todos));
+
+	    default:
+	      return state;
+	  }
+	};
+
+/***/ },
+/* 397 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(Buffer) {//     uuid.js
@@ -44422,7 +44084,7 @@
 	    // Moderately fast, high quality
 	    if (true) {
 	      try {
-	        var _rb = __webpack_require__(406).randomBytes;
+	        var _rb = __webpack_require__(402).randomBytes;
 	        _nodeRNG = _rng = _rb && function() {return _rb(16);};
 	        _rng();
 	      } catch(e) {}
@@ -44637,10 +44299,10 @@
 	  }
 	})('undefined' !== typeof window ? window : null);
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 402 */
+/* 398 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/*!
@@ -44653,9 +44315,9 @@
 
 	'use strict'
 
-	var base64 = __webpack_require__(403)
-	var ieee754 = __webpack_require__(404)
-	var isArray = __webpack_require__(405)
+	var base64 = __webpack_require__(399)
+	var ieee754 = __webpack_require__(400)
+	var isArray = __webpack_require__(401)
 
 	exports.Buffer = Buffer
 	exports.SlowBuffer = SlowBuffer
@@ -46436,7 +46098,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 403 */
+/* 399 */
 /***/ function(module, exports) {
 
 	'use strict'
@@ -46556,7 +46218,7 @@
 
 
 /***/ },
-/* 404 */
+/* 400 */
 /***/ function(module, exports) {
 
 	exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -46646,7 +46308,7 @@
 
 
 /***/ },
-/* 405 */
+/* 401 */
 /***/ function(module, exports) {
 
 	var toString = {}.toString;
@@ -46657,10 +46319,10 @@
 
 
 /***/ },
-/* 406 */
+/* 402 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var rng = __webpack_require__(407)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var rng = __webpack_require__(403)
 
 	function error () {
 	  var m = [].slice.call(arguments).join(' ')
@@ -46671,9 +46333,9 @@
 	    ].join('\n'))
 	}
 
-	exports.createHash = __webpack_require__(409)
+	exports.createHash = __webpack_require__(405)
 
-	exports.createHmac = __webpack_require__(421)
+	exports.createHmac = __webpack_require__(417)
 
 	exports.randomBytes = function(size, callback) {
 	  if (callback && callback.call) {
@@ -46694,10 +46356,10 @@
 	  return ['sha1', 'sha256', 'sha512', 'md5', 'rmd160']
 	}
 
-	var p = __webpack_require__(422)(exports)
+	var p = __webpack_require__(418)(exports)
 	exports.pbkdf2 = p.pbkdf2
 	exports.pbkdf2Sync = p.pbkdf2Sync
-	__webpack_require__(424)(exports, module.exports);
+	__webpack_require__(420)(exports, module.exports);
 
 	// the least I can do is make error messages for the rest of the node.js/crypto api.
 	each(['createCredentials'
@@ -46710,16 +46372,16 @@
 	  }
 	})
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 407 */
+/* 403 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, Buffer) {(function() {
 	  var g = ('undefined' === typeof window ? global : window) || {}
 	  _crypto = (
-	    g.crypto || g.msCrypto || __webpack_require__(408)
+	    g.crypto || g.msCrypto || __webpack_require__(404)
 	  )
 	  module.exports = function(size) {
 	    // Modern Browsers
@@ -46743,22 +46405,22 @@
 	  }
 	}())
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(398).Buffer))
 
 /***/ },
-/* 408 */
+/* 404 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 409 */
+/* 405 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(410)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(406)
 
-	var md5 = toConstructor(__webpack_require__(418))
-	var rmd160 = toConstructor(__webpack_require__(420))
+	var md5 = toConstructor(__webpack_require__(414))
+	var rmd160 = toConstructor(__webpack_require__(416))
 
 	function toConstructor (fn) {
 	  return function () {
@@ -46786,10 +46448,10 @@
 	  return createHash(alg)
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 410 */
+/* 406 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var exports = module.exports = function (alg) {
@@ -46798,16 +46460,16 @@
 	  return new Alg()
 	}
 
-	var Buffer = __webpack_require__(402).Buffer
-	var Hash   = __webpack_require__(411)(Buffer)
+	var Buffer = __webpack_require__(398).Buffer
+	var Hash   = __webpack_require__(407)(Buffer)
 
-	exports.sha1 = __webpack_require__(412)(Buffer, Hash)
-	exports.sha256 = __webpack_require__(416)(Buffer, Hash)
-	exports.sha512 = __webpack_require__(417)(Buffer, Hash)
+	exports.sha1 = __webpack_require__(408)(Buffer, Hash)
+	exports.sha256 = __webpack_require__(412)(Buffer, Hash)
+	exports.sha512 = __webpack_require__(413)(Buffer, Hash)
 
 
 /***/ },
-/* 411 */
+/* 407 */
 /***/ function(module, exports) {
 
 	module.exports = function (Buffer) {
@@ -46890,7 +46552,7 @@
 
 
 /***/ },
-/* 412 */
+/* 408 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -46902,7 +46564,7 @@
 	 * See http://pajhome.org.uk/crypt/md5 for details.
 	 */
 
-	var inherits = __webpack_require__(413).inherits
+	var inherits = __webpack_require__(409).inherits
 
 	module.exports = function (Buffer, Hash) {
 
@@ -47034,7 +46696,7 @@
 
 
 /***/ },
-/* 413 */
+/* 409 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -47562,7 +47224,7 @@
 	}
 	exports.isPrimitive = isPrimitive;
 
-	exports.isBuffer = __webpack_require__(414);
+	exports.isBuffer = __webpack_require__(410);
 
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -47606,7 +47268,7 @@
 	 *     prototype.
 	 * @param {function} superCtor Constructor function to inherit prototype from.
 	 */
-	exports.inherits = __webpack_require__(415);
+	exports.inherits = __webpack_require__(411);
 
 	exports._extend = function(origin, add) {
 	  // Don't do anything if add isn't an object
@@ -47627,7 +47289,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(11)))
 
 /***/ },
-/* 414 */
+/* 410 */
 /***/ function(module, exports) {
 
 	module.exports = function isBuffer(arg) {
@@ -47638,7 +47300,7 @@
 	}
 
 /***/ },
-/* 415 */
+/* 411 */
 /***/ function(module, exports) {
 
 	if (typeof Object.create === 'function') {
@@ -47667,7 +47329,7 @@
 
 
 /***/ },
-/* 416 */
+/* 412 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -47679,7 +47341,7 @@
 	 *
 	 */
 
-	var inherits = __webpack_require__(413).inherits
+	var inherits = __webpack_require__(409).inherits
 
 	module.exports = function (Buffer, Hash) {
 
@@ -47820,10 +47482,10 @@
 
 
 /***/ },
-/* 417 */
+/* 413 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var inherits = __webpack_require__(413).inherits
+	var inherits = __webpack_require__(409).inherits
 
 	module.exports = function (Buffer, Hash) {
 	  var K = [
@@ -48070,7 +47732,7 @@
 
 
 /***/ },
-/* 418 */
+/* 414 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -48082,7 +47744,7 @@
 	 * See http://pajhome.org.uk/crypt/md5 for more info.
 	 */
 
-	var helpers = __webpack_require__(419);
+	var helpers = __webpack_require__(415);
 
 	/*
 	 * Calculate the MD5 of an array of little-endian words, and a bit length
@@ -48231,7 +47893,7 @@
 
 
 /***/ },
-/* 419 */
+/* 415 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {var intSize = 4;
@@ -48269,10 +47931,10 @@
 
 	module.exports = { hash: hash };
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 420 */
+/* 416 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {
@@ -48481,13 +48143,13 @@
 
 
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 421 */
+/* 417 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(409)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(405)
 
 	var zeroBuffer = new Buffer(128)
 	zeroBuffer.fill(0)
@@ -48531,13 +48193,13 @@
 	}
 
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 422 */
+/* 418 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var pbkdf2Export = __webpack_require__(423)
+	var pbkdf2Export = __webpack_require__(419)
 
 	module.exports = function (crypto, exports) {
 	  exports = exports || {}
@@ -48552,7 +48214,7 @@
 
 
 /***/ },
-/* 423 */
+/* 419 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {module.exports = function(crypto) {
@@ -48640,21 +48302,21 @@
 	  }
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 424 */
+/* 420 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = function (crypto, exports) {
 	  exports = exports || {};
-	  var ciphers = __webpack_require__(425)(crypto);
+	  var ciphers = __webpack_require__(421)(crypto);
 	  exports.createCipher = ciphers.createCipher;
 	  exports.createCipheriv = ciphers.createCipheriv;
-	  var deciphers = __webpack_require__(459)(crypto);
+	  var deciphers = __webpack_require__(455)(crypto);
 	  exports.createDecipher = deciphers.createDecipher;
 	  exports.createDecipheriv = deciphers.createDecipheriv;
-	  var modes = __webpack_require__(450);
+	  var modes = __webpack_require__(446);
 	  function listCiphers () {
 	    return Object.keys(modes);
 	  }
@@ -48664,15 +48326,15 @@
 
 
 /***/ },
-/* 425 */
+/* 421 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(426);
-	var Transform = __webpack_require__(427);
-	var inherits = __webpack_require__(430);
-	var modes = __webpack_require__(450);
-	var ebtk = __webpack_require__(451);
-	var StreamCipher = __webpack_require__(452);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(422);
+	var Transform = __webpack_require__(423);
+	var inherits = __webpack_require__(426);
+	var modes = __webpack_require__(446);
+	var ebtk = __webpack_require__(447);
+	var StreamCipher = __webpack_require__(448);
 	inherits(Cipher, Transform);
 	function Cipher(mode, key, iv) {
 	  if (!(this instanceof Cipher)) {
@@ -48733,11 +48395,11 @@
 	  return out;
 	};
 	var modelist = {
-	  ECB: __webpack_require__(453),
-	  CBC: __webpack_require__(454),
-	  CFB: __webpack_require__(456),
-	  OFB: __webpack_require__(457),
-	  CTR: __webpack_require__(458)
+	  ECB: __webpack_require__(449),
+	  CBC: __webpack_require__(450),
+	  CFB: __webpack_require__(452),
+	  OFB: __webpack_require__(453),
+	  CTR: __webpack_require__(454)
 	};
 	module.exports = function (crypto) {
 	  function createCipheriv(suite, password, iv) {
@@ -48776,10 +48438,10 @@
 	  };
 	};
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 426 */
+/* 422 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {var uint_max = Math.pow(2, 32);
@@ -48978,14 +48640,14 @@
 
 
 	  exports.AES = AES;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 427 */
+/* 423 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var Transform = __webpack_require__(428).Transform;
-	var inherits = __webpack_require__(430);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var Transform = __webpack_require__(424).Transform;
+	var inherits = __webpack_require__(426);
 
 	module.exports = CipherBase;
 	inherits(CipherBase, Transform);
@@ -49016,10 +48678,10 @@
 	  }
 	  return outData;
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 428 */
+/* 424 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -49045,15 +48707,15 @@
 
 	module.exports = Stream;
 
-	var EE = __webpack_require__(429).EventEmitter;
-	var inherits = __webpack_require__(430);
+	var EE = __webpack_require__(425).EventEmitter;
+	var inherits = __webpack_require__(426);
 
 	inherits(Stream, EE);
-	Stream.Readable = __webpack_require__(431);
-	Stream.Writable = __webpack_require__(446);
-	Stream.Duplex = __webpack_require__(447);
-	Stream.Transform = __webpack_require__(448);
-	Stream.PassThrough = __webpack_require__(449);
+	Stream.Readable = __webpack_require__(427);
+	Stream.Writable = __webpack_require__(442);
+	Stream.Duplex = __webpack_require__(443);
+	Stream.Transform = __webpack_require__(444);
+	Stream.PassThrough = __webpack_require__(445);
 
 	// Backwards-compat with node 0.4.x
 	Stream.Stream = Stream;
@@ -49152,7 +48814,7 @@
 
 
 /***/ },
-/* 429 */
+/* 425 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -49460,7 +49122,7 @@
 
 
 /***/ },
-/* 430 */
+/* 426 */
 /***/ function(module, exports) {
 
 	if (typeof Object.create === 'function') {
@@ -49489,21 +49151,21 @@
 
 
 /***/ },
-/* 431 */
+/* 427 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {var Stream = (function (){
 	  try {
-	    return __webpack_require__(428); // hack to fix a circular dependency issue when used with browserify
+	    return __webpack_require__(424); // hack to fix a circular dependency issue when used with browserify
 	  } catch(_){}
 	}());
-	exports = module.exports = __webpack_require__(432);
+	exports = module.exports = __webpack_require__(428);
 	exports.Stream = Stream || exports;
 	exports.Readable = exports;
-	exports.Writable = __webpack_require__(439);
-	exports.Duplex = __webpack_require__(438);
-	exports.Transform = __webpack_require__(444);
-	exports.PassThrough = __webpack_require__(445);
+	exports.Writable = __webpack_require__(435);
+	exports.Duplex = __webpack_require__(434);
+	exports.Transform = __webpack_require__(440);
+	exports.PassThrough = __webpack_require__(441);
 
 	if (!process.browser && process.env.READABLE_STREAM === 'disable' && Stream) {
 	  module.exports = Stream;
@@ -49512,7 +49174,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 432 */
+/* 428 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -49520,11 +49182,11 @@
 	module.exports = Readable;
 
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(433);
+	var processNextTick = __webpack_require__(429);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var isArray = __webpack_require__(405);
+	var isArray = __webpack_require__(401);
 	/*</replacement>*/
 
 	/*<replacement>*/
@@ -49534,7 +49196,7 @@
 	Readable.ReadableState = ReadableState;
 
 	/*<replacement>*/
-	var EE = __webpack_require__(429).EventEmitter;
+	var EE = __webpack_require__(425).EventEmitter;
 
 	var EElistenerCount = function (emitter, type) {
 	  return emitter.listeners(type).length;
@@ -49545,25 +49207,25 @@
 	var Stream;
 	(function () {
 	  try {
-	    Stream = __webpack_require__(428);
+	    Stream = __webpack_require__(424);
 	  } catch (_) {} finally {
-	    if (!Stream) Stream = __webpack_require__(429).EventEmitter;
+	    if (!Stream) Stream = __webpack_require__(425).EventEmitter;
 	  }
 	})();
 	/*</replacement>*/
 
-	var Buffer = __webpack_require__(402).Buffer;
+	var Buffer = __webpack_require__(398).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(434);
+	var bufferShim = __webpack_require__(430);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var util = __webpack_require__(435);
-	util.inherits = __webpack_require__(430);
+	var util = __webpack_require__(431);
+	util.inherits = __webpack_require__(426);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var debugUtil = __webpack_require__(436);
+	var debugUtil = __webpack_require__(432);
 	var debug = void 0;
 	if (debugUtil && debugUtil.debuglog) {
 	  debug = debugUtil.debuglog('stream');
@@ -49572,7 +49234,7 @@
 	}
 	/*</replacement>*/
 
-	var BufferList = __webpack_require__(437);
+	var BufferList = __webpack_require__(433);
 	var StringDecoder;
 
 	util.inherits(Readable, Stream);
@@ -49592,7 +49254,7 @@
 	}
 
 	function ReadableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(438);
+	  Duplex = Duplex || __webpack_require__(434);
 
 	  options = options || {};
 
@@ -49654,14 +49316,14 @@
 	  this.decoder = null;
 	  this.encoding = null;
 	  if (options.encoding) {
-	    if (!StringDecoder) StringDecoder = __webpack_require__(443).StringDecoder;
+	    if (!StringDecoder) StringDecoder = __webpack_require__(439).StringDecoder;
 	    this.decoder = new StringDecoder(options.encoding);
 	    this.encoding = options.encoding;
 	  }
 	}
 
 	function Readable(options) {
-	  Duplex = Duplex || __webpack_require__(438);
+	  Duplex = Duplex || __webpack_require__(434);
 
 	  if (!(this instanceof Readable)) return new Readable(options);
 
@@ -49764,7 +49426,7 @@
 
 	// backwards compatibility.
 	Readable.prototype.setEncoding = function (enc) {
-	  if (!StringDecoder) StringDecoder = __webpack_require__(443).StringDecoder;
+	  if (!StringDecoder) StringDecoder = __webpack_require__(439).StringDecoder;
 	  this._readableState.decoder = new StringDecoder(enc);
 	  this._readableState.encoding = enc;
 	  return this;
@@ -50459,7 +50121,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 433 */
+/* 429 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -50509,12 +50171,12 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 434 */
+/* 430 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
 
-	var buffer = __webpack_require__(402);
+	var buffer = __webpack_require__(398);
 	var Buffer = buffer.Buffer;
 	var SlowBuffer = buffer.SlowBuffer;
 	var MAX_LEN = buffer.kMaxLength || 2147483647;
@@ -50624,7 +50286,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 435 */
+/* 431 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {// Copyright Joyent, Inc. and other Node contributors.
@@ -50735,23 +50397,23 @@
 	  return Object.prototype.toString.call(o);
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 436 */
+/* 432 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 437 */
+/* 433 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Buffer = __webpack_require__(402).Buffer;
+	var Buffer = __webpack_require__(398).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(434);
+	var bufferShim = __webpack_require__(430);
 	/*</replacement>*/
 
 	module.exports = BufferList;
@@ -50813,7 +50475,7 @@
 	};
 
 /***/ },
-/* 438 */
+/* 434 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// a duplex stream is just a stream that is both readable and writable.
@@ -50836,16 +50498,16 @@
 	module.exports = Duplex;
 
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(433);
+	var processNextTick = __webpack_require__(429);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var util = __webpack_require__(435);
-	util.inherits = __webpack_require__(430);
+	var util = __webpack_require__(431);
+	util.inherits = __webpack_require__(426);
 	/*</replacement>*/
 
-	var Readable = __webpack_require__(432);
-	var Writable = __webpack_require__(439);
+	var Readable = __webpack_require__(428);
+	var Writable = __webpack_require__(435);
 
 	util.inherits(Duplex, Readable);
 
@@ -50893,7 +50555,7 @@
 	}
 
 /***/ },
-/* 439 */
+/* 435 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process, setImmediate) {// A bit simpler than readable streams.
@@ -50905,7 +50567,7 @@
 	module.exports = Writable;
 
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(433);
+	var processNextTick = __webpack_require__(429);
 	/*</replacement>*/
 
 	/*<replacement>*/
@@ -50919,13 +50581,13 @@
 	Writable.WritableState = WritableState;
 
 	/*<replacement>*/
-	var util = __webpack_require__(435);
-	util.inherits = __webpack_require__(430);
+	var util = __webpack_require__(431);
+	util.inherits = __webpack_require__(426);
 	/*</replacement>*/
 
 	/*<replacement>*/
 	var internalUtil = {
-	  deprecate: __webpack_require__(442)
+	  deprecate: __webpack_require__(438)
 	};
 	/*</replacement>*/
 
@@ -50933,16 +50595,16 @@
 	var Stream;
 	(function () {
 	  try {
-	    Stream = __webpack_require__(428);
+	    Stream = __webpack_require__(424);
 	  } catch (_) {} finally {
-	    if (!Stream) Stream = __webpack_require__(429).EventEmitter;
+	    if (!Stream) Stream = __webpack_require__(425).EventEmitter;
 	  }
 	})();
 	/*</replacement>*/
 
-	var Buffer = __webpack_require__(402).Buffer;
+	var Buffer = __webpack_require__(398).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(434);
+	var bufferShim = __webpack_require__(430);
 	/*</replacement>*/
 
 	util.inherits(Writable, Stream);
@@ -50957,7 +50619,7 @@
 	}
 
 	function WritableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(438);
+	  Duplex = Duplex || __webpack_require__(434);
 
 	  options = options || {};
 
@@ -51091,7 +50753,7 @@
 	}
 
 	function Writable(options) {
-	  Duplex = Duplex || __webpack_require__(438);
+	  Duplex = Duplex || __webpack_require__(434);
 
 	  // Writable ctor is applied to Duplexes, too.
 	  // `realHasInstance` is necessary because using plain `instanceof`
@@ -51450,10 +51112,10 @@
 	    }
 	  };
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11), __webpack_require__(440).setImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11), __webpack_require__(436).setImmediate))
 
 /***/ },
-/* 440 */
+/* 436 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var apply = Function.prototype.apply;
@@ -51506,13 +51168,13 @@
 	};
 
 	// setimmediate attaches itself to the global object
-	__webpack_require__(441);
+	__webpack_require__(437);
 	exports.setImmediate = setImmediate;
 	exports.clearImmediate = clearImmediate;
 
 
 /***/ },
-/* 441 */
+/* 437 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -51705,7 +51367,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(11)))
 
 /***/ },
-/* 442 */
+/* 438 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -51779,7 +51441,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 443 */
+/* 439 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -51803,7 +51465,7 @@
 	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 	// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-	var Buffer = __webpack_require__(402).Buffer;
+	var Buffer = __webpack_require__(398).Buffer;
 
 	var isBufferEncoding = Buffer.isEncoding
 	  || function(encoding) {
@@ -52006,7 +51668,7 @@
 
 
 /***/ },
-/* 444 */
+/* 440 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// a transform stream is a readable/writable stream where you do
@@ -52055,11 +51717,11 @@
 
 	module.exports = Transform;
 
-	var Duplex = __webpack_require__(438);
+	var Duplex = __webpack_require__(434);
 
 	/*<replacement>*/
-	var util = __webpack_require__(435);
-	util.inherits = __webpack_require__(430);
+	var util = __webpack_require__(431);
+	util.inherits = __webpack_require__(426);
 	/*</replacement>*/
 
 	util.inherits(Transform, Duplex);
@@ -52193,7 +51855,7 @@
 	}
 
 /***/ },
-/* 445 */
+/* 441 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// a passthrough stream.
@@ -52204,11 +51866,11 @@
 
 	module.exports = PassThrough;
 
-	var Transform = __webpack_require__(444);
+	var Transform = __webpack_require__(440);
 
 	/*<replacement>*/
-	var util = __webpack_require__(435);
-	util.inherits = __webpack_require__(430);
+	var util = __webpack_require__(431);
+	util.inherits = __webpack_require__(426);
 	/*</replacement>*/
 
 	util.inherits(PassThrough, Transform);
@@ -52224,35 +51886,35 @@
 	};
 
 /***/ },
+/* 442 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(435)
+
+
+/***/ },
+/* 443 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(434)
+
+
+/***/ },
+/* 444 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(440)
+
+
+/***/ },
+/* 445 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(441)
+
+
+/***/ },
 /* 446 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(439)
-
-
-/***/ },
-/* 447 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(438)
-
-
-/***/ },
-/* 448 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(444)
-
-
-/***/ },
-/* 449 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(445)
-
-
-/***/ },
-/* 450 */
 /***/ function(module, exports) {
 
 	exports['aes-128-ecb'] = {
@@ -52365,7 +52027,7 @@
 	};
 
 /***/ },
-/* 451 */
+/* 447 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {
@@ -52425,15 +52087,15 @@
 	    iv: iv
 	  };
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 452 */
+/* 448 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(426);
-	var Transform = __webpack_require__(427);
-	var inherits = __webpack_require__(430);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(422);
+	var Transform = __webpack_require__(423);
+	var inherits = __webpack_require__(426);
 
 	inherits(StreamCipher, Transform);
 	module.exports = StreamCipher;
@@ -52457,10 +52119,10 @@
 	  this._cipher.scrub();
 	  next();
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 453 */
+/* 449 */
 /***/ function(module, exports) {
 
 	exports.encrypt = function (self, block) {
@@ -52471,10 +52133,10 @@
 	};
 
 /***/ },
-/* 454 */
+/* 450 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var xor = __webpack_require__(455);
+	var xor = __webpack_require__(451);
 	exports.encrypt = function (self, block) {
 	  var data = xor(block, self._prev);
 	  self._prev = self._cipher.encryptBlock(data);
@@ -52488,7 +52150,7 @@
 	};
 
 /***/ },
-/* 455 */
+/* 451 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {module.exports = xor;
@@ -52501,13 +52163,13 @@
 	  }
 	  return out;
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 456 */
+/* 452 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(455);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(451);
 	exports.encrypt = function (self, data, decrypt) {
 	  var out = new Buffer('');
 	  var len;
@@ -52534,13 +52196,13 @@
 	  self._prev = Buffer.concat([self._prev, decrypt?data:out]);
 	  return out;
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 457 */
+/* 453 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(455);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(451);
 	function getBlock(self) {
 	  self._prev = self._cipher.encryptBlock(self._prev);
 	  return self._prev;
@@ -52553,13 +52215,13 @@
 	  self._cache = self._cache.slice(chunk.length);
 	  return xor(chunk, pad);
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 458 */
+/* 454 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(455);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(451);
 	function getBlock(self) {
 	  var out = self._cipher.encryptBlock(self._prev);
 	  incr32(self._prev);
@@ -52587,18 +52249,18 @@
 	    }
 	  }
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
 
 /***/ },
-/* 459 */
+/* 455 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(426);
-	var Transform = __webpack_require__(427);
-	var inherits = __webpack_require__(430);
-	var modes = __webpack_require__(450);
-	var StreamCipher = __webpack_require__(452);
-	var ebtk = __webpack_require__(451);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(422);
+	var Transform = __webpack_require__(423);
+	var inherits = __webpack_require__(426);
+	var modes = __webpack_require__(446);
+	var StreamCipher = __webpack_require__(448);
+	var ebtk = __webpack_require__(447);
 
 	inherits(Decipher, Transform);
 	function Decipher(mode, key, iv) {
@@ -52666,11 +52328,11 @@
 	}
 
 	var modelist = {
-	  ECB: __webpack_require__(453),
-	  CBC: __webpack_require__(454),
-	  CFB: __webpack_require__(456),
-	  OFB: __webpack_require__(457),
-	  CTR: __webpack_require__(458)
+	  ECB: __webpack_require__(449),
+	  CBC: __webpack_require__(450),
+	  CFB: __webpack_require__(452),
+	  OFB: __webpack_require__(453),
+	  CTR: __webpack_require__(454)
 	};
 
 	module.exports = function (crypto) {
@@ -52711,7 +52373,355 @@
 	  };
 	};
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(398).Buffer))
+
+/***/ },
+/* 456 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(457);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(459)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../node_modules/css-loader/index.js!./../../node_modules/sass-loader/index.js!./app.scss", function() {
+				var newContent = require("!!./../../node_modules/css-loader/index.js!./../../node_modules/sass-loader/index.js!./app.scss");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 457 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(458)();
+	// imports
+
+
+	// module
+	exports.push([module.id, "@charset \"UTF-8\";\n/**\n * Foundation for Sites by ZURB\n * Version 6.3.0\n * foundation.zurb.com\n * Licensed under MIT Open Source\n */\n/*! normalize-scss | MIT/GPLv2 License | bit.ly/normalize-scss */\n/* Document\n       ========================================================================== */\n/**\n     * 1. Change the default font family in all browsers (opinionated).\n     * 2. Correct the line height in all browsers.\n     * 3. Prevent adjustments of font size after orientation changes in\n     *    IE on Windows Phone and in iOS.\n     */\nhtml {\n  font-family: sans-serif;\n  /* 1 */\n  line-height: 1.15;\n  /* 2 */\n  -ms-text-size-adjust: 100%;\n  /* 3 */\n  -webkit-text-size-adjust: 100%;\n  /* 3 */ }\n\n/* Sections\n       ========================================================================== */\n/**\n     * Remove the margin in all browsers (opinionated).\n     */\nbody {\n  margin: 0; }\n\n/**\n     * Add the correct display in IE 9-.\n     */\narticle,\naside,\nfooter,\nheader,\nnav,\nsection {\n  display: block; }\n\n/**\n     * Correct the font size and margin on `h1` elements within `section` and\n     * `article` contexts in Chrome, Firefox, and Safari.\n     */\nh1 {\n  font-size: 2em;\n  margin: 0.67em 0; }\n\n/* Grouping content\n       ========================================================================== */\n/**\n     * Add the correct display in IE 9-.\n     */\nfigcaption,\nfigure {\n  display: block; }\n\n/**\n     * Add the correct margin in IE 8.\n     */\nfigure {\n  margin: 1em 40px; }\n\n/**\n     * 1. Add the correct box sizing in Firefox.\n     * 2. Show the overflow in Edge and IE.\n     */\nhr {\n  box-sizing: content-box;\n  /* 1 */\n  height: 0;\n  /* 1 */\n  overflow: visible;\n  /* 2 */ }\n\n/**\n     * Add the correct display in IE.\n     */\nmain {\n  display: block; }\n\n/**\n     * 1. Correct the inheritance and scaling of font size in all browsers.\n     * 2. Correct the odd `em` font sizing in all browsers.\n     */\npre {\n  font-family: monospace, monospace;\n  /* 1 */\n  font-size: 1em;\n  /* 2 */ }\n\n/* Links\n       ========================================================================== */\n/**\n     * 1. Remove the gray background on active links in IE 10.\n     * 2. Remove gaps in links underline in iOS 8+ and Safari 8+.\n     */\na {\n  background-color: transparent;\n  /* 1 */\n  -webkit-text-decoration-skip: objects;\n  /* 2 */ }\n\n/**\n     * Remove the outline on focused links when they are also active or hovered\n     * in all browsers (opinionated).\n     */\na:active,\na:hover {\n  outline-width: 0; }\n\n/* Text-level semantics\n       ========================================================================== */\n/**\n     * 1. Remove the bottom border in Firefox 39-.\n     * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.\n     */\nabbr[title] {\n  border-bottom: none;\n  /* 1 */\n  text-decoration: underline;\n  /* 2 */\n  text-decoration: underline dotted;\n  /* 2 */ }\n\n/**\n     * Prevent the duplicate application of `bolder` by the next rule in Safari 6.\n     */\nb,\nstrong {\n  font-weight: inherit; }\n\n/**\n     * Add the correct font weight in Chrome, Edge, and Safari.\n     */\nb,\nstrong {\n  font-weight: bolder; }\n\n/**\n     * 1. Correct the inheritance and scaling of font size in all browsers.\n     * 2. Correct the odd `em` font sizing in all browsers.\n     */\ncode,\nkbd,\nsamp {\n  font-family: monospace, monospace;\n  /* 1 */\n  font-size: 1em;\n  /* 2 */ }\n\n/**\n     * Add the correct font style in Android 4.3-.\n     */\ndfn {\n  font-style: italic; }\n\n/**\n     * Add the correct background and color in IE 9-.\n     */\nmark {\n  background-color: #ff0;\n  color: #000; }\n\n/**\n     * Add the correct font size in all browsers.\n     */\nsmall {\n  font-size: 80%; }\n\n/**\n     * Prevent `sub` and `sup` elements from affecting the line height in\n     * all browsers.\n     */\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline; }\n\nsub {\n  bottom: -0.25em; }\n\nsup {\n  top: -0.5em; }\n\n/* Embedded content\n       ========================================================================== */\n/**\n     * Add the correct display in IE 9-.\n     */\naudio,\nvideo {\n  display: inline-block; }\n\n/**\n     * Add the correct display in iOS 4-7.\n     */\naudio:not([controls]) {\n  display: none;\n  height: 0; }\n\n/**\n     * Remove the border on images inside links in IE 10-.\n     */\nimg {\n  border-style: none; }\n\n/**\n     * Hide the overflow in IE.\n     */\nsvg:not(:root) {\n  overflow: hidden; }\n\n/* Forms\n       ========================================================================== */\n/**\n     * 1. Change the font styles in all browsers (opinionated).\n     * 2. Remove the margin in Firefox and Safari.\n     */\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  font-family: sans-serif;\n  /* 1 */\n  font-size: 100%;\n  /* 1 */\n  line-height: 1.15;\n  /* 1 */\n  margin: 0;\n  /* 2 */ }\n\n/**\n     * Show the overflow in IE.\n     */\nbutton {\n  overflow: visible; }\n\n/**\n     * Remove the inheritance of text transform in Edge, Firefox, and IE.\n     * 1. Remove the inheritance of text transform in Firefox.\n     */\nbutton,\nselect {\n  /* 1 */\n  text-transform: none; }\n\n/**\n     * 1. Prevent a WebKit bug where (2) destroys native `audio` and `video`\n     *    controls in Android 4.\n     * 2. Correct the inability to style clickable types in iOS and Safari.\n     */\nbutton,\nhtml [type=\"button\"],\n[type=\"reset\"],\n[type=\"submit\"] {\n  -webkit-appearance: button;\n  /* 2 */ }\n\nbutton,\n[type=\"button\"],\n[type=\"reset\"],\n[type=\"submit\"] {\n  /**\n       * Remove the inner border and padding in Firefox.\n       */\n  /**\n       * Restore the focus styles unset by the previous rule.\n       */ }\n  button::-moz-focus-inner,\n  [type=\"button\"]::-moz-focus-inner,\n  [type=\"reset\"]::-moz-focus-inner,\n  [type=\"submit\"]::-moz-focus-inner {\n    border-style: none;\n    padding: 0; }\n  button:-moz-focusring,\n  [type=\"button\"]:-moz-focusring,\n  [type=\"reset\"]:-moz-focusring,\n  [type=\"submit\"]:-moz-focusring {\n    outline: 1px dotted ButtonText; }\n\n/**\n     * Show the overflow in Edge.\n     */\ninput {\n  overflow: visible; }\n\n/**\n     * 1. Add the correct box sizing in IE 10-.\n     * 2. Remove the padding in IE 10-.\n     */\n[type=\"checkbox\"],\n[type=\"radio\"] {\n  box-sizing: border-box;\n  /* 1 */\n  padding: 0;\n  /* 2 */ }\n\n/**\n     * Correct the cursor style of increment and decrement buttons in Chrome.\n     */\n[type=\"number\"]::-webkit-inner-spin-button,\n[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto; }\n\n/**\n     * 1. Correct the odd appearance in Chrome and Safari.\n     * 2. Correct the outline style in Safari.\n     */\n[type=\"search\"] {\n  -webkit-appearance: textfield;\n  /* 1 */\n  outline-offset: -2px;\n  /* 2 */\n  /**\n       * Remove the inner padding and cancel buttons in Chrome and Safari on macOS.\n       */ }\n  [type=\"search\"]::-webkit-search-cancel-button, [type=\"search\"]::-webkit-search-decoration {\n    -webkit-appearance: none; }\n\n/**\n     * 1. Correct the inability to style clickable types in iOS and Safari.\n     * 2. Change font properties to `inherit` in Safari.\n     */\n::-webkit-file-upload-button {\n  -webkit-appearance: button;\n  /* 1 */\n  font: inherit;\n  /* 2 */ }\n\n/**\n     * Change the border, margin, and padding in all browsers (opinionated).\n     */\nfieldset {\n  border: 1px solid #c0c0c0;\n  margin: 0 2px;\n  padding: 0.35em 0.625em 0.75em; }\n\n/**\n     * 1. Correct the text wrapping in Edge and IE.\n     * 2. Correct the color inheritance from `fieldset` elements in IE.\n     * 3. Remove the padding so developers are not caught out when they zero out\n     *    `fieldset` elements in all browsers.\n     */\nlegend {\n  box-sizing: border-box;\n  /* 1 */\n  display: table;\n  /* 1 */\n  max-width: 100%;\n  /* 1 */\n  padding: 0;\n  /* 3 */\n  color: inherit;\n  /* 2 */\n  white-space: normal;\n  /* 1 */ }\n\n/**\n     * 1. Add the correct display in IE 9-.\n     * 2. Add the correct vertical alignment in Chrome, Firefox, and Opera.\n     */\nprogress {\n  display: inline-block;\n  /* 1 */\n  vertical-align: baseline;\n  /* 2 */ }\n\n/**\n     * Remove the default vertical scrollbar in IE.\n     */\ntextarea {\n  overflow: auto; }\n\n/* Interactive\n       ========================================================================== */\n/*\n     * Add the correct display in Edge, IE, and Firefox.\n     */\ndetails {\n  display: block; }\n\n/*\n     * Add the correct display in all browsers.\n     */\nsummary {\n  display: list-item; }\n\n/*\n     * Add the correct display in IE 9-.\n     */\nmenu {\n  display: block; }\n\n/* Scripting\n       ========================================================================== */\n/**\n     * Add the correct display in IE 9-.\n     */\ncanvas {\n  display: inline-block; }\n\n/**\n     * Add the correct display in IE.\n     */\ntemplate {\n  display: none; }\n\n/* Hidden\n       ========================================================================== */\n/**\n     * Add the correct display in IE 10-.\n     */\n[hidden] {\n  display: none; }\n\n.foundation-mq {\n  font-family: \"small=0em&medium=40em&large=64em&xlarge=75em&xxlarge=90em\"; }\n\nhtml {\n  box-sizing: border-box;\n  font-size: 100%; }\n\n*,\n*::before,\n*::after {\n  box-sizing: inherit; }\n\nbody {\n  margin: 0;\n  padding: 0;\n  background: #fefefe;\n  font-family: \"Helvetica Neue\", Helvetica, Roboto, Arial, sans-serif;\n  font-weight: normal;\n  line-height: 1.5;\n  color: #0a0a0a;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\nimg {\n  display: inline-block;\n  vertical-align: middle;\n  max-width: 100%;\n  height: auto;\n  -ms-interpolation-mode: bicubic; }\n\ntextarea {\n  height: auto;\n  min-height: 50px;\n  border-radius: 0; }\n\nselect {\n  width: 100%;\n  border-radius: 0; }\n\n.map_canvas img,\n.map_canvas embed,\n.map_canvas object,\n.mqa-display img,\n.mqa-display embed,\n.mqa-display object {\n  max-width: none !important; }\n\nbutton {\n  padding: 0;\n  appearance: none;\n  border: 0;\n  border-radius: 0;\n  background: transparent;\n  line-height: 1; }\n  [data-whatinput='mouse'] button {\n    outline: 0; }\n\n.is-visible {\n  display: block !important; }\n\n.is-hidden {\n  display: none !important; }\n\n.row {\n  max-width: 75rem;\n  margin-right: auto;\n  margin-left: auto; }\n  .row::before, .row::after {\n    display: table;\n    content: ' '; }\n  .row::after {\n    clear: both; }\n  .row.collapse > .column, .row.collapse > .columns {\n    padding-right: 0;\n    padding-left: 0; }\n  .row .row {\n    margin-right: -0.625rem;\n    margin-left: -0.625rem; }\n    @media print, screen and (min-width: 40em) {\n      .row .row {\n        margin-right: -0.9375rem;\n        margin-left: -0.9375rem; } }\n    @media print, screen and (min-width: 64em) {\n      .row .row {\n        margin-right: -0.9375rem;\n        margin-left: -0.9375rem; } }\n    .row .row.collapse {\n      margin-right: 0;\n      margin-left: 0; }\n  .row.expanded {\n    max-width: none; }\n    .row.expanded .row {\n      margin-right: auto;\n      margin-left: auto; }\n  .row.gutter-small > .column, .row.gutter-small > .columns {\n    padding-right: 0.625rem;\n    padding-left: 0.625rem; }\n  .row.gutter-medium > .column, .row.gutter-medium > .columns {\n    padding-right: 0.9375rem;\n    padding-left: 0.9375rem; }\n\n.column, .columns {\n  width: 100%;\n  float: left;\n  padding-right: 0.625rem;\n  padding-left: 0.625rem; }\n  @media print, screen and (min-width: 40em) {\n    .column, .columns {\n      padding-right: 0.9375rem;\n      padding-left: 0.9375rem; } }\n  .column:last-child:not(:first-child), .columns:last-child:not(:first-child) {\n    float: right; }\n  .column.end:last-child:last-child, .end.columns:last-child:last-child {\n    float: left; }\n\n.column.row.row, .row.row.columns {\n  float: none; }\n\n.row .column.row.row, .row .row.row.columns {\n  margin-right: 0;\n  margin-left: 0;\n  padding-right: 0;\n  padding-left: 0; }\n\n.small-1 {\n  width: 8.33333%; }\n\n.small-push-1 {\n  position: relative;\n  left: 8.33333%; }\n\n.small-pull-1 {\n  position: relative;\n  left: -8.33333%; }\n\n.small-offset-0 {\n  margin-left: 0%; }\n\n.small-2 {\n  width: 16.66667%; }\n\n.small-push-2 {\n  position: relative;\n  left: 16.66667%; }\n\n.small-pull-2 {\n  position: relative;\n  left: -16.66667%; }\n\n.small-offset-1 {\n  margin-left: 8.33333%; }\n\n.small-3 {\n  width: 25%; }\n\n.small-push-3 {\n  position: relative;\n  left: 25%; }\n\n.small-pull-3 {\n  position: relative;\n  left: -25%; }\n\n.small-offset-2 {\n  margin-left: 16.66667%; }\n\n.small-4 {\n  width: 33.33333%; }\n\n.small-push-4 {\n  position: relative;\n  left: 33.33333%; }\n\n.small-pull-4 {\n  position: relative;\n  left: -33.33333%; }\n\n.small-offset-3 {\n  margin-left: 25%; }\n\n.small-5 {\n  width: 41.66667%; }\n\n.small-push-5 {\n  position: relative;\n  left: 41.66667%; }\n\n.small-pull-5 {\n  position: relative;\n  left: -41.66667%; }\n\n.small-offset-4 {\n  margin-left: 33.33333%; }\n\n.small-6 {\n  width: 50%; }\n\n.small-push-6 {\n  position: relative;\n  left: 50%; }\n\n.small-pull-6 {\n  position: relative;\n  left: -50%; }\n\n.small-offset-5 {\n  margin-left: 41.66667%; }\n\n.small-7 {\n  width: 58.33333%; }\n\n.small-push-7 {\n  position: relative;\n  left: 58.33333%; }\n\n.small-pull-7 {\n  position: relative;\n  left: -58.33333%; }\n\n.small-offset-6 {\n  margin-left: 50%; }\n\n.small-8 {\n  width: 66.66667%; }\n\n.small-push-8 {\n  position: relative;\n  left: 66.66667%; }\n\n.small-pull-8 {\n  position: relative;\n  left: -66.66667%; }\n\n.small-offset-7 {\n  margin-left: 58.33333%; }\n\n.small-9 {\n  width: 75%; }\n\n.small-push-9 {\n  position: relative;\n  left: 75%; }\n\n.small-pull-9 {\n  position: relative;\n  left: -75%; }\n\n.small-offset-8 {\n  margin-left: 66.66667%; }\n\n.small-10 {\n  width: 83.33333%; }\n\n.small-push-10 {\n  position: relative;\n  left: 83.33333%; }\n\n.small-pull-10 {\n  position: relative;\n  left: -83.33333%; }\n\n.small-offset-9 {\n  margin-left: 75%; }\n\n.small-11 {\n  width: 91.66667%; }\n\n.small-push-11 {\n  position: relative;\n  left: 91.66667%; }\n\n.small-pull-11 {\n  position: relative;\n  left: -91.66667%; }\n\n.small-offset-10 {\n  margin-left: 83.33333%; }\n\n.small-12 {\n  width: 100%; }\n\n.small-offset-11 {\n  margin-left: 91.66667%; }\n\n.small-up-1 > .column, .small-up-1 > .columns {\n  float: left;\n  width: 100%; }\n  .small-up-1 > .column:nth-of-type(1n), .small-up-1 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-1 > .column:nth-of-type(1n+1), .small-up-1 > .columns:nth-of-type(1n+1) {\n    clear: both; }\n  .small-up-1 > .column:last-child, .small-up-1 > .columns:last-child {\n    float: left; }\n\n.small-up-2 > .column, .small-up-2 > .columns {\n  float: left;\n  width: 50%; }\n  .small-up-2 > .column:nth-of-type(1n), .small-up-2 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-2 > .column:nth-of-type(2n+1), .small-up-2 > .columns:nth-of-type(2n+1) {\n    clear: both; }\n  .small-up-2 > .column:last-child, .small-up-2 > .columns:last-child {\n    float: left; }\n\n.small-up-3 > .column, .small-up-3 > .columns {\n  float: left;\n  width: 33.33333%; }\n  .small-up-3 > .column:nth-of-type(1n), .small-up-3 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-3 > .column:nth-of-type(3n+1), .small-up-3 > .columns:nth-of-type(3n+1) {\n    clear: both; }\n  .small-up-3 > .column:last-child, .small-up-3 > .columns:last-child {\n    float: left; }\n\n.small-up-4 > .column, .small-up-4 > .columns {\n  float: left;\n  width: 25%; }\n  .small-up-4 > .column:nth-of-type(1n), .small-up-4 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-4 > .column:nth-of-type(4n+1), .small-up-4 > .columns:nth-of-type(4n+1) {\n    clear: both; }\n  .small-up-4 > .column:last-child, .small-up-4 > .columns:last-child {\n    float: left; }\n\n.small-up-5 > .column, .small-up-5 > .columns {\n  float: left;\n  width: 20%; }\n  .small-up-5 > .column:nth-of-type(1n), .small-up-5 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-5 > .column:nth-of-type(5n+1), .small-up-5 > .columns:nth-of-type(5n+1) {\n    clear: both; }\n  .small-up-5 > .column:last-child, .small-up-5 > .columns:last-child {\n    float: left; }\n\n.small-up-6 > .column, .small-up-6 > .columns {\n  float: left;\n  width: 16.66667%; }\n  .small-up-6 > .column:nth-of-type(1n), .small-up-6 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-6 > .column:nth-of-type(6n+1), .small-up-6 > .columns:nth-of-type(6n+1) {\n    clear: both; }\n  .small-up-6 > .column:last-child, .small-up-6 > .columns:last-child {\n    float: left; }\n\n.small-up-7 > .column, .small-up-7 > .columns {\n  float: left;\n  width: 14.28571%; }\n  .small-up-7 > .column:nth-of-type(1n), .small-up-7 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-7 > .column:nth-of-type(7n+1), .small-up-7 > .columns:nth-of-type(7n+1) {\n    clear: both; }\n  .small-up-7 > .column:last-child, .small-up-7 > .columns:last-child {\n    float: left; }\n\n.small-up-8 > .column, .small-up-8 > .columns {\n  float: left;\n  width: 12.5%; }\n  .small-up-8 > .column:nth-of-type(1n), .small-up-8 > .columns:nth-of-type(1n) {\n    clear: none; }\n  .small-up-8 > .column:nth-of-type(8n+1), .small-up-8 > .columns:nth-of-type(8n+1) {\n    clear: both; }\n  .small-up-8 > .column:last-child, .small-up-8 > .columns:last-child {\n    float: left; }\n\n.small-collapse > .column, .small-collapse > .columns {\n  padding-right: 0;\n  padding-left: 0; }\n\n.small-collapse .row {\n  margin-right: 0;\n  margin-left: 0; }\n\n.expanded.row .small-collapse.row {\n  margin-right: 0;\n  margin-left: 0; }\n\n.small-uncollapse > .column, .small-uncollapse > .columns {\n  padding-right: 0.625rem;\n  padding-left: 0.625rem; }\n\n.small-centered {\n  margin-right: auto;\n  margin-left: auto; }\n  .small-centered, .small-centered:last-child:not(:first-child) {\n    float: none;\n    clear: both; }\n\n.small-uncentered,\n.small-push-0,\n.small-pull-0 {\n  position: static;\n  float: left;\n  margin-right: 0;\n  margin-left: 0; }\n\n@media print, screen and (min-width: 40em) {\n  .medium-1 {\n    width: 8.33333%; }\n  .medium-push-1 {\n    position: relative;\n    left: 8.33333%; }\n  .medium-pull-1 {\n    position: relative;\n    left: -8.33333%; }\n  .medium-offset-0 {\n    margin-left: 0%; }\n  .medium-2 {\n    width: 16.66667%; }\n  .medium-push-2 {\n    position: relative;\n    left: 16.66667%; }\n  .medium-pull-2 {\n    position: relative;\n    left: -16.66667%; }\n  .medium-offset-1 {\n    margin-left: 8.33333%; }\n  .medium-3 {\n    width: 25%; }\n  .medium-push-3 {\n    position: relative;\n    left: 25%; }\n  .medium-pull-3 {\n    position: relative;\n    left: -25%; }\n  .medium-offset-2 {\n    margin-left: 16.66667%; }\n  .medium-4 {\n    width: 33.33333%; }\n  .medium-push-4 {\n    position: relative;\n    left: 33.33333%; }\n  .medium-pull-4 {\n    position: relative;\n    left: -33.33333%; }\n  .medium-offset-3 {\n    margin-left: 25%; }\n  .medium-5 {\n    width: 41.66667%; }\n  .medium-push-5 {\n    position: relative;\n    left: 41.66667%; }\n  .medium-pull-5 {\n    position: relative;\n    left: -41.66667%; }\n  .medium-offset-4 {\n    margin-left: 33.33333%; }\n  .medium-6 {\n    width: 50%; }\n  .medium-push-6 {\n    position: relative;\n    left: 50%; }\n  .medium-pull-6 {\n    position: relative;\n    left: -50%; }\n  .medium-offset-5 {\n    margin-left: 41.66667%; }\n  .medium-7 {\n    width: 58.33333%; }\n  .medium-push-7 {\n    position: relative;\n    left: 58.33333%; }\n  .medium-pull-7 {\n    position: relative;\n    left: -58.33333%; }\n  .medium-offset-6 {\n    margin-left: 50%; }\n  .medium-8 {\n    width: 66.66667%; }\n  .medium-push-8 {\n    position: relative;\n    left: 66.66667%; }\n  .medium-pull-8 {\n    position: relative;\n    left: -66.66667%; }\n  .medium-offset-7 {\n    margin-left: 58.33333%; }\n  .medium-9 {\n    width: 75%; }\n  .medium-push-9 {\n    position: relative;\n    left: 75%; }\n  .medium-pull-9 {\n    position: relative;\n    left: -75%; }\n  .medium-offset-8 {\n    margin-left: 66.66667%; }\n  .medium-10 {\n    width: 83.33333%; }\n  .medium-push-10 {\n    position: relative;\n    left: 83.33333%; }\n  .medium-pull-10 {\n    position: relative;\n    left: -83.33333%; }\n  .medium-offset-9 {\n    margin-left: 75%; }\n  .medium-11 {\n    width: 91.66667%; }\n  .medium-push-11 {\n    position: relative;\n    left: 91.66667%; }\n  .medium-pull-11 {\n    position: relative;\n    left: -91.66667%; }\n  .medium-offset-10 {\n    margin-left: 83.33333%; }\n  .medium-12 {\n    width: 100%; }\n  .medium-offset-11 {\n    margin-left: 91.66667%; }\n  .medium-up-1 > .column, .medium-up-1 > .columns {\n    float: left;\n    width: 100%; }\n    .medium-up-1 > .column:nth-of-type(1n), .medium-up-1 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-1 > .column:nth-of-type(1n+1), .medium-up-1 > .columns:nth-of-type(1n+1) {\n      clear: both; }\n    .medium-up-1 > .column:last-child, .medium-up-1 > .columns:last-child {\n      float: left; }\n  .medium-up-2 > .column, .medium-up-2 > .columns {\n    float: left;\n    width: 50%; }\n    .medium-up-2 > .column:nth-of-type(1n), .medium-up-2 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-2 > .column:nth-of-type(2n+1), .medium-up-2 > .columns:nth-of-type(2n+1) {\n      clear: both; }\n    .medium-up-2 > .column:last-child, .medium-up-2 > .columns:last-child {\n      float: left; }\n  .medium-up-3 > .column, .medium-up-3 > .columns {\n    float: left;\n    width: 33.33333%; }\n    .medium-up-3 > .column:nth-of-type(1n), .medium-up-3 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-3 > .column:nth-of-type(3n+1), .medium-up-3 > .columns:nth-of-type(3n+1) {\n      clear: both; }\n    .medium-up-3 > .column:last-child, .medium-up-3 > .columns:last-child {\n      float: left; }\n  .medium-up-4 > .column, .medium-up-4 > .columns {\n    float: left;\n    width: 25%; }\n    .medium-up-4 > .column:nth-of-type(1n), .medium-up-4 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-4 > .column:nth-of-type(4n+1), .medium-up-4 > .columns:nth-of-type(4n+1) {\n      clear: both; }\n    .medium-up-4 > .column:last-child, .medium-up-4 > .columns:last-child {\n      float: left; }\n  .medium-up-5 > .column, .medium-up-5 > .columns {\n    float: left;\n    width: 20%; }\n    .medium-up-5 > .column:nth-of-type(1n), .medium-up-5 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-5 > .column:nth-of-type(5n+1), .medium-up-5 > .columns:nth-of-type(5n+1) {\n      clear: both; }\n    .medium-up-5 > .column:last-child, .medium-up-5 > .columns:last-child {\n      float: left; }\n  .medium-up-6 > .column, .medium-up-6 > .columns {\n    float: left;\n    width: 16.66667%; }\n    .medium-up-6 > .column:nth-of-type(1n), .medium-up-6 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-6 > .column:nth-of-type(6n+1), .medium-up-6 > .columns:nth-of-type(6n+1) {\n      clear: both; }\n    .medium-up-6 > .column:last-child, .medium-up-6 > .columns:last-child {\n      float: left; }\n  .medium-up-7 > .column, .medium-up-7 > .columns {\n    float: left;\n    width: 14.28571%; }\n    .medium-up-7 > .column:nth-of-type(1n), .medium-up-7 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-7 > .column:nth-of-type(7n+1), .medium-up-7 > .columns:nth-of-type(7n+1) {\n      clear: both; }\n    .medium-up-7 > .column:last-child, .medium-up-7 > .columns:last-child {\n      float: left; }\n  .medium-up-8 > .column, .medium-up-8 > .columns {\n    float: left;\n    width: 12.5%; }\n    .medium-up-8 > .column:nth-of-type(1n), .medium-up-8 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .medium-up-8 > .column:nth-of-type(8n+1), .medium-up-8 > .columns:nth-of-type(8n+1) {\n      clear: both; }\n    .medium-up-8 > .column:last-child, .medium-up-8 > .columns:last-child {\n      float: left; }\n  .medium-collapse > .column, .medium-collapse > .columns {\n    padding-right: 0;\n    padding-left: 0; }\n  .medium-collapse .row {\n    margin-right: 0;\n    margin-left: 0; }\n  .expanded.row .medium-collapse.row {\n    margin-right: 0;\n    margin-left: 0; }\n  .medium-uncollapse > .column, .medium-uncollapse > .columns {\n    padding-right: 0.9375rem;\n    padding-left: 0.9375rem; }\n  .medium-centered {\n    margin-right: auto;\n    margin-left: auto; }\n    .medium-centered, .medium-centered:last-child:not(:first-child) {\n      float: none;\n      clear: both; }\n  .medium-uncentered,\n  .medium-push-0,\n  .medium-pull-0 {\n    position: static;\n    float: left;\n    margin-right: 0;\n    margin-left: 0; } }\n\n@media print, screen and (min-width: 64em) {\n  .large-1 {\n    width: 8.33333%; }\n  .large-push-1 {\n    position: relative;\n    left: 8.33333%; }\n  .large-pull-1 {\n    position: relative;\n    left: -8.33333%; }\n  .large-offset-0 {\n    margin-left: 0%; }\n  .large-2 {\n    width: 16.66667%; }\n  .large-push-2 {\n    position: relative;\n    left: 16.66667%; }\n  .large-pull-2 {\n    position: relative;\n    left: -16.66667%; }\n  .large-offset-1 {\n    margin-left: 8.33333%; }\n  .large-3 {\n    width: 25%; }\n  .large-push-3 {\n    position: relative;\n    left: 25%; }\n  .large-pull-3 {\n    position: relative;\n    left: -25%; }\n  .large-offset-2 {\n    margin-left: 16.66667%; }\n  .large-4 {\n    width: 33.33333%; }\n  .large-push-4 {\n    position: relative;\n    left: 33.33333%; }\n  .large-pull-4 {\n    position: relative;\n    left: -33.33333%; }\n  .large-offset-3 {\n    margin-left: 25%; }\n  .large-5 {\n    width: 41.66667%; }\n  .large-push-5 {\n    position: relative;\n    left: 41.66667%; }\n  .large-pull-5 {\n    position: relative;\n    left: -41.66667%; }\n  .large-offset-4 {\n    margin-left: 33.33333%; }\n  .large-6 {\n    width: 50%; }\n  .large-push-6 {\n    position: relative;\n    left: 50%; }\n  .large-pull-6 {\n    position: relative;\n    left: -50%; }\n  .large-offset-5 {\n    margin-left: 41.66667%; }\n  .large-7 {\n    width: 58.33333%; }\n  .large-push-7 {\n    position: relative;\n    left: 58.33333%; }\n  .large-pull-7 {\n    position: relative;\n    left: -58.33333%; }\n  .large-offset-6 {\n    margin-left: 50%; }\n  .large-8 {\n    width: 66.66667%; }\n  .large-push-8 {\n    position: relative;\n    left: 66.66667%; }\n  .large-pull-8 {\n    position: relative;\n    left: -66.66667%; }\n  .large-offset-7 {\n    margin-left: 58.33333%; }\n  .large-9 {\n    width: 75%; }\n  .large-push-9 {\n    position: relative;\n    left: 75%; }\n  .large-pull-9 {\n    position: relative;\n    left: -75%; }\n  .large-offset-8 {\n    margin-left: 66.66667%; }\n  .large-10 {\n    width: 83.33333%; }\n  .large-push-10 {\n    position: relative;\n    left: 83.33333%; }\n  .large-pull-10 {\n    position: relative;\n    left: -83.33333%; }\n  .large-offset-9 {\n    margin-left: 75%; }\n  .large-11 {\n    width: 91.66667%; }\n  .large-push-11 {\n    position: relative;\n    left: 91.66667%; }\n  .large-pull-11 {\n    position: relative;\n    left: -91.66667%; }\n  .large-offset-10 {\n    margin-left: 83.33333%; }\n  .large-12 {\n    width: 100%; }\n  .large-offset-11 {\n    margin-left: 91.66667%; }\n  .large-up-1 > .column, .large-up-1 > .columns {\n    float: left;\n    width: 100%; }\n    .large-up-1 > .column:nth-of-type(1n), .large-up-1 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-1 > .column:nth-of-type(1n+1), .large-up-1 > .columns:nth-of-type(1n+1) {\n      clear: both; }\n    .large-up-1 > .column:last-child, .large-up-1 > .columns:last-child {\n      float: left; }\n  .large-up-2 > .column, .large-up-2 > .columns {\n    float: left;\n    width: 50%; }\n    .large-up-2 > .column:nth-of-type(1n), .large-up-2 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-2 > .column:nth-of-type(2n+1), .large-up-2 > .columns:nth-of-type(2n+1) {\n      clear: both; }\n    .large-up-2 > .column:last-child, .large-up-2 > .columns:last-child {\n      float: left; }\n  .large-up-3 > .column, .large-up-3 > .columns {\n    float: left;\n    width: 33.33333%; }\n    .large-up-3 > .column:nth-of-type(1n), .large-up-3 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-3 > .column:nth-of-type(3n+1), .large-up-3 > .columns:nth-of-type(3n+1) {\n      clear: both; }\n    .large-up-3 > .column:last-child, .large-up-3 > .columns:last-child {\n      float: left; }\n  .large-up-4 > .column, .large-up-4 > .columns {\n    float: left;\n    width: 25%; }\n    .large-up-4 > .column:nth-of-type(1n), .large-up-4 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-4 > .column:nth-of-type(4n+1), .large-up-4 > .columns:nth-of-type(4n+1) {\n      clear: both; }\n    .large-up-4 > .column:last-child, .large-up-4 > .columns:last-child {\n      float: left; }\n  .large-up-5 > .column, .large-up-5 > .columns {\n    float: left;\n    width: 20%; }\n    .large-up-5 > .column:nth-of-type(1n), .large-up-5 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-5 > .column:nth-of-type(5n+1), .large-up-5 > .columns:nth-of-type(5n+1) {\n      clear: both; }\n    .large-up-5 > .column:last-child, .large-up-5 > .columns:last-child {\n      float: left; }\n  .large-up-6 > .column, .large-up-6 > .columns {\n    float: left;\n    width: 16.66667%; }\n    .large-up-6 > .column:nth-of-type(1n), .large-up-6 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-6 > .column:nth-of-type(6n+1), .large-up-6 > .columns:nth-of-type(6n+1) {\n      clear: both; }\n    .large-up-6 > .column:last-child, .large-up-6 > .columns:last-child {\n      float: left; }\n  .large-up-7 > .column, .large-up-7 > .columns {\n    float: left;\n    width: 14.28571%; }\n    .large-up-7 > .column:nth-of-type(1n), .large-up-7 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-7 > .column:nth-of-type(7n+1), .large-up-7 > .columns:nth-of-type(7n+1) {\n      clear: both; }\n    .large-up-7 > .column:last-child, .large-up-7 > .columns:last-child {\n      float: left; }\n  .large-up-8 > .column, .large-up-8 > .columns {\n    float: left;\n    width: 12.5%; }\n    .large-up-8 > .column:nth-of-type(1n), .large-up-8 > .columns:nth-of-type(1n) {\n      clear: none; }\n    .large-up-8 > .column:nth-of-type(8n+1), .large-up-8 > .columns:nth-of-type(8n+1) {\n      clear: both; }\n    .large-up-8 > .column:last-child, .large-up-8 > .columns:last-child {\n      float: left; }\n  .large-collapse > .column, .large-collapse > .columns {\n    padding-right: 0;\n    padding-left: 0; }\n  .large-collapse .row {\n    margin-right: 0;\n    margin-left: 0; }\n  .expanded.row .large-collapse.row {\n    margin-right: 0;\n    margin-left: 0; }\n  .large-uncollapse > .column, .large-uncollapse > .columns {\n    padding-right: 0.9375rem;\n    padding-left: 0.9375rem; }\n  .large-centered {\n    margin-right: auto;\n    margin-left: auto; }\n    .large-centered, .large-centered:last-child:not(:first-child) {\n      float: none;\n      clear: both; }\n  .large-uncentered,\n  .large-push-0,\n  .large-pull-0 {\n    position: static;\n    float: left;\n    margin-right: 0;\n    margin-left: 0; } }\n\n.column-block {\n  margin-bottom: 1.25rem; }\n  .column-block > :last-child {\n    margin-bottom: 0; }\n  @media print, screen and (min-width: 40em) {\n    .column-block {\n      margin-bottom: 1.875rem; }\n      .column-block > :last-child {\n        margin-bottom: 0; } }\n\ndiv,\ndl,\ndt,\ndd,\nul,\nol,\nli,\nh1,\nh2,\nh3,\nh4,\nh5,\nh6,\npre,\nform,\np,\nblockquote,\nth,\ntd {\n  margin: 0;\n  padding: 0; }\n\np {\n  margin-bottom: 1rem;\n  font-size: inherit;\n  line-height: 1.6;\n  text-rendering: optimizeLegibility; }\n\nem,\ni {\n  font-style: italic;\n  line-height: inherit; }\n\nstrong,\nb {\n  font-weight: bold;\n  line-height: inherit; }\n\nsmall {\n  font-size: 80%;\n  line-height: inherit; }\n\nh1,\nh2,\nh3,\nh4,\nh5,\nh6 {\n  font-family: \"Helvetica Neue\", Helvetica, Roboto, Arial, sans-serif;\n  font-style: normal;\n  font-weight: normal;\n  color: inherit;\n  text-rendering: optimizeLegibility; }\n  h1 small,\n  h2 small,\n  h3 small,\n  h4 small,\n  h5 small,\n  h6 small {\n    line-height: 0;\n    color: #cacaca; }\n\nh1 {\n  font-size: 1.5rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\nh2 {\n  font-size: 1.25rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\nh3 {\n  font-size: 1.1875rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\nh4 {\n  font-size: 1.125rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\nh5 {\n  font-size: 1.0625rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\nh6 {\n  font-size: 1rem;\n  line-height: 1.4;\n  margin-top: 0;\n  margin-bottom: 0.5rem; }\n\n@media print, screen and (min-width: 40em) {\n  h1 {\n    font-size: 3rem; }\n  h2 {\n    font-size: 2.5rem; }\n  h3 {\n    font-size: 1.9375rem; }\n  h4 {\n    font-size: 1.5625rem; }\n  h5 {\n    font-size: 1.25rem; }\n  h6 {\n    font-size: 1rem; } }\n\na {\n  line-height: inherit;\n  color: #1779ba;\n  text-decoration: none;\n  cursor: pointer; }\n  a:hover, a:focus {\n    color: #1468a0; }\n  a img {\n    border: 0; }\n\nhr {\n  clear: both;\n  max-width: 75rem;\n  height: 0;\n  margin: 1.25rem auto;\n  border-top: 0;\n  border-right: 0;\n  border-bottom: 1px solid #cacaca;\n  border-left: 0; }\n\nul,\nol,\ndl {\n  margin-bottom: 1rem;\n  list-style-position: outside;\n  line-height: 1.6; }\n\nli {\n  font-size: inherit; }\n\nul {\n  margin-left: 1.25rem;\n  list-style-type: disc; }\n\nol {\n  margin-left: 1.25rem; }\n\nul ul, ol ul, ul ol, ol ol {\n  margin-left: 1.25rem;\n  margin-bottom: 0; }\n\ndl {\n  margin-bottom: 1rem; }\n  dl dt {\n    margin-bottom: 0.3rem;\n    font-weight: bold; }\n\nblockquote {\n  margin: 0 0 1rem;\n  padding: 0.5625rem 1.25rem 0 1.1875rem;\n  border-left: 1px solid #cacaca; }\n  blockquote, blockquote p {\n    line-height: 1.6;\n    color: #8a8a8a; }\n\ncite {\n  display: block;\n  font-size: 0.8125rem;\n  color: #8a8a8a; }\n  cite:before {\n    content: \"\\2014   \"; }\n\nabbr {\n  border-bottom: 1px dotted #0a0a0a;\n  color: #0a0a0a;\n  cursor: help; }\n\nfigure {\n  margin: 0; }\n\ncode {\n  padding: 0.125rem 0.3125rem 0.0625rem;\n  border: 1px solid #cacaca;\n  background-color: #e6e6e6;\n  font-family: Consolas, \"Liberation Mono\", Courier, monospace;\n  font-weight: normal;\n  color: #0a0a0a; }\n\nkbd {\n  margin: 0;\n  padding: 0.125rem 0.25rem 0;\n  background-color: #e6e6e6;\n  font-family: Consolas, \"Liberation Mono\", Courier, monospace;\n  color: #0a0a0a; }\n\n.subheader {\n  margin-top: 0.2rem;\n  margin-bottom: 0.5rem;\n  font-weight: normal;\n  line-height: 1.4;\n  color: #8a8a8a; }\n\n.lead {\n  font-size: 125%;\n  line-height: 1.6; }\n\n.stat {\n  font-size: 2.5rem;\n  line-height: 1; }\n  p + .stat {\n    margin-top: -1rem; }\n\n.no-bullet {\n  margin-left: 0;\n  list-style: none; }\n\n.text-left {\n  text-align: left; }\n\n.text-right {\n  text-align: right; }\n\n.text-center {\n  text-align: center; }\n\n.text-justify {\n  text-align: justify; }\n\n@media print, screen and (min-width: 40em) {\n  .medium-text-left {\n    text-align: left; }\n  .medium-text-right {\n    text-align: right; }\n  .medium-text-center {\n    text-align: center; }\n  .medium-text-justify {\n    text-align: justify; } }\n\n@media print, screen and (min-width: 64em) {\n  .large-text-left {\n    text-align: left; }\n  .large-text-right {\n    text-align: right; }\n  .large-text-center {\n    text-align: center; }\n  .large-text-justify {\n    text-align: justify; } }\n\n.show-for-print {\n  display: none !important; }\n\n@media print {\n  * {\n    background: transparent !important;\n    box-shadow: none !important;\n    color: black !important;\n    text-shadow: none !important; }\n  .show-for-print {\n    display: block !important; }\n  .hide-for-print {\n    display: none !important; }\n  table.show-for-print {\n    display: table !important; }\n  thead.show-for-print {\n    display: table-header-group !important; }\n  tbody.show-for-print {\n    display: table-row-group !important; }\n  tr.show-for-print {\n    display: table-row !important; }\n  td.show-for-print {\n    display: table-cell !important; }\n  th.show-for-print {\n    display: table-cell !important; }\n  a,\n  a:visited {\n    text-decoration: underline; }\n  a[href]:after {\n    content: \" (\" attr(href) \")\"; }\n  .ir a:after,\n  a[href^='javascript:']:after,\n  a[href^='#']:after {\n    content: ''; }\n  abbr[title]:after {\n    content: \" (\" attr(title) \")\"; }\n  pre,\n  blockquote {\n    border: 1px solid #8a8a8a;\n    page-break-inside: avoid; }\n  thead {\n    display: table-header-group; }\n  tr,\n  img {\n    page-break-inside: avoid; }\n  img {\n    max-width: 100% !important; }\n  @page {\n    margin: 0.5cm; }\n  p,\n  h2,\n  h3 {\n    orphans: 3;\n    widows: 3; }\n  h2,\n  h3 {\n    page-break-after: avoid; } }\n\n[type='text'], [type='password'], [type='date'], [type='datetime'], [type='datetime-local'], [type='month'], [type='week'], [type='email'], [type='number'], [type='search'], [type='tel'], [type='time'], [type='url'], [type='color'],\ntextarea {\n  display: block;\n  box-sizing: border-box;\n  width: 100%;\n  height: 2.4375rem;\n  margin: 0 0 1rem;\n  padding: 0.5rem;\n  border: 1px solid #cacaca;\n  border-radius: 0;\n  background-color: #fefefe;\n  box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.1);\n  font-family: inherit;\n  font-size: 1rem;\n  font-weight: normal;\n  color: #0a0a0a;\n  transition: box-shadow 0.5s, border-color 0.25s ease-in-out;\n  appearance: none; }\n  [type='text']:focus, [type='password']:focus, [type='date']:focus, [type='datetime']:focus, [type='datetime-local']:focus, [type='month']:focus, [type='week']:focus, [type='email']:focus, [type='number']:focus, [type='search']:focus, [type='tel']:focus, [type='time']:focus, [type='url']:focus, [type='color']:focus,\n  textarea:focus {\n    outline: none;\n    border: 1px solid #8a8a8a;\n    background-color: #fefefe;\n    box-shadow: 0 0 5px #cacaca;\n    transition: box-shadow 0.5s, border-color 0.25s ease-in-out; }\n\ntextarea {\n  max-width: 100%; }\n  textarea[rows] {\n    height: auto; }\n\ninput::placeholder,\ntextarea::placeholder {\n  color: #cacaca; }\n\ninput:disabled, input[readonly],\ntextarea:disabled,\ntextarea[readonly] {\n  background-color: #e6e6e6;\n  cursor: not-allowed; }\n\n[type='submit'],\n[type='button'] {\n  appearance: none;\n  border-radius: 0; }\n\ninput[type='search'] {\n  box-sizing: border-box; }\n\n[type='file'],\n[type='checkbox'],\n[type='radio'] {\n  margin: 0 0 1rem; }\n\n[type='checkbox'] + label,\n[type='radio'] + label {\n  display: inline-block;\n  vertical-align: baseline;\n  margin-left: 0.5rem;\n  margin-right: 1rem;\n  margin-bottom: 0; }\n  [type='checkbox'] + label[for],\n  [type='radio'] + label[for] {\n    cursor: pointer; }\n\nlabel > [type='checkbox'],\nlabel > [type='radio'] {\n  margin-right: 0.5rem; }\n\n[type='file'] {\n  width: 100%; }\n\nlabel {\n  display: block;\n  margin: 0;\n  font-size: 0.875rem;\n  font-weight: normal;\n  line-height: 1.8;\n  color: #0a0a0a; }\n  label.middle {\n    margin: 0 0 1rem;\n    padding: 0.5625rem 0; }\n\n.help-text {\n  margin-top: -0.5rem;\n  font-size: 0.8125rem;\n  font-style: italic;\n  color: #0a0a0a; }\n\n.input-group {\n  display: table;\n  width: 100%;\n  margin-bottom: 1rem; }\n  .input-group > :first-child {\n    border-radius: 0 0 0 0; }\n  .input-group > :last-child > * {\n    border-radius: 0 0 0 0; }\n\n.input-group-label, .input-group-field, .input-group-button, .input-group-button a,\n.input-group-button input,\n.input-group-button button,\n.input-group-button label {\n  margin: 0;\n  white-space: nowrap;\n  display: table-cell;\n  vertical-align: middle; }\n\n.input-group-label {\n  padding: 0 1rem;\n  border: 1px solid #cacaca;\n  background: #e6e6e6;\n  color: #0a0a0a;\n  text-align: center;\n  white-space: nowrap;\n  width: 1%;\n  height: 100%; }\n  .input-group-label:first-child {\n    border-right: 0; }\n  .input-group-label:last-child {\n    border-left: 0; }\n\n.input-group-field {\n  border-radius: 0;\n  height: 2.5rem; }\n\n.input-group-button {\n  padding-top: 0;\n  padding-bottom: 0;\n  text-align: center;\n  width: 1%;\n  height: 100%; }\n  .input-group-button a,\n  .input-group-button input,\n  .input-group-button button,\n  .input-group-button label {\n    height: 2.5rem;\n    padding-top: 0;\n    padding-bottom: 0;\n    font-size: 1rem; }\n\n.input-group .input-group-button {\n  display: table-cell; }\n\nfieldset {\n  margin: 0;\n  padding: 0;\n  border: 0; }\n\nlegend {\n  max-width: 100%;\n  margin-bottom: 0.5rem; }\n\n.fieldset {\n  margin: 1.125rem 0;\n  padding: 1.25rem;\n  border: 1px solid #cacaca; }\n  .fieldset legend {\n    margin: 0;\n    margin-left: -0.1875rem;\n    padding: 0 0.1875rem;\n    background: #fefefe; }\n\nselect {\n  height: 2.4375rem;\n  margin: 0 0 1rem;\n  padding: 0.5rem;\n  appearance: none;\n  border: 1px solid #cacaca;\n  border-radius: 0;\n  background-color: #fefefe;\n  font-family: inherit;\n  font-size: 1rem;\n  line-height: normal;\n  color: #0a0a0a;\n  background-image: url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='32' height='24' viewBox='0 0 32 24'><polygon points='0,0 32,0 16,24' style='fill: rgb%28138, 138, 138%29'></polygon></svg>\");\n  background-origin: content-box;\n  background-position: right -1rem center;\n  background-repeat: no-repeat;\n  background-size: 9px 6px;\n  padding-right: 1.5rem;\n  transition: box-shadow 0.5s, border-color 0.25s ease-in-out; }\n  @media screen and (min-width: 0\\0) {\n    select {\n      background-image: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAYCAYAAACbU/80AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAIpJREFUeNrEkckNgDAMBBfRkEt0ObRBBdsGXUDgmQfK4XhH2m8czQAAy27R3tsw4Qfe2x8uOO6oYLb6GlOor3GF+swURAOmUJ+RwtEJs9WvTGEYxBXqI1MQAZhCfUQKRzDMVj+TwrAIV6jvSUEkYAr1LSkcyTBb/V+KYfX7xAeusq3sLDtGH3kEGACPWIflNZfhRQAAAABJRU5ErkJggg==\"); } }\n  select:focus {\n    outline: none;\n    border: 1px solid #8a8a8a;\n    background-color: #fefefe;\n    box-shadow: 0 0 5px #cacaca;\n    transition: box-shadow 0.5s, border-color 0.25s ease-in-out; }\n  select:disabled {\n    background-color: #e6e6e6;\n    cursor: not-allowed; }\n  select::-ms-expand {\n    display: none; }\n  select[multiple] {\n    height: auto;\n    background-image: none; }\n\n.is-invalid-input:not(:focus) {\n  border-color: #cc4b37;\n  background-color: #f9ecea; }\n  .is-invalid-input:not(:focus)::placeholder {\n    color: #cc4b37; }\n\n.is-invalid-label {\n  color: #cc4b37; }\n\n.form-error {\n  display: none;\n  margin-top: -0.5rem;\n  margin-bottom: 1rem;\n  font-size: 0.75rem;\n  font-weight: bold;\n  color: #cc4b37; }\n  .form-error.is-visible {\n    display: block; }\n\n.button {\n  display: inline-block;\n  vertical-align: middle;\n  margin: 0 0 1rem 0;\n  padding: 0.85em 1em;\n  -webkit-appearance: none;\n  border: 1px solid transparent;\n  border-radius: 0;\n  transition: background-color 0.25s ease-out, color 0.25s ease-out;\n  font-size: 0.9rem;\n  line-height: 1;\n  text-align: center;\n  cursor: pointer;\n  background-color: #1779ba;\n  color: #fefefe; }\n  [data-whatinput='mouse'] .button {\n    outline: 0; }\n  .button:hover, .button:focus {\n    background-color: #14679e;\n    color: #fefefe; }\n  .button.tiny {\n    font-size: 0.6rem; }\n  .button.small {\n    font-size: 0.75rem; }\n  .button.large {\n    font-size: 1.25rem; }\n  .button.expanded {\n    display: block;\n    width: 100%;\n    margin-right: 0;\n    margin-left: 0; }\n  .button.primary {\n    background-color: #1779ba;\n    color: #fefefe; }\n    .button.primary:hover, .button.primary:focus {\n      background-color: #126195;\n      color: #fefefe; }\n  .button.secondary {\n    background-color: #767676;\n    color: #fefefe; }\n    .button.secondary:hover, .button.secondary:focus {\n      background-color: #5e5e5e;\n      color: #fefefe; }\n  .button.success {\n    background-color: #3adb76;\n    color: #0a0a0a; }\n    .button.success:hover, .button.success:focus {\n      background-color: #22bb5b;\n      color: #0a0a0a; }\n  .button.warning {\n    background-color: #ffae00;\n    color: #0a0a0a; }\n    .button.warning:hover, .button.warning:focus {\n      background-color: #cc8b00;\n      color: #0a0a0a; }\n  .button.alert {\n    background-color: #cc4b37;\n    color: #fefefe; }\n    .button.alert:hover, .button.alert:focus {\n      background-color: #a53b2a;\n      color: #fefefe; }\n  .button.hollow {\n    border: 1px solid #1779ba;\n    color: #1779ba; }\n    .button.hollow, .button.hollow:hover, .button.hollow:focus {\n      background-color: transparent; }\n    .button.hollow:hover, .button.hollow:focus {\n      border-color: #0c3d5d;\n      color: #0c3d5d; }\n    .button.hollow.primary {\n      border: 1px solid #1779ba;\n      color: #1779ba; }\n      .button.hollow.primary:hover, .button.hollow.primary:focus {\n        border-color: #0c3d5d;\n        color: #0c3d5d; }\n    .button.hollow.secondary {\n      border: 1px solid #767676;\n      color: #767676; }\n      .button.hollow.secondary:hover, .button.hollow.secondary:focus {\n        border-color: #3b3b3b;\n        color: #3b3b3b; }\n    .button.hollow.success {\n      border: 1px solid #3adb76;\n      color: #3adb76; }\n      .button.hollow.success:hover, .button.hollow.success:focus {\n        border-color: #157539;\n        color: #157539; }\n    .button.hollow.warning {\n      border: 1px solid #ffae00;\n      color: #ffae00; }\n      .button.hollow.warning:hover, .button.hollow.warning:focus {\n        border-color: #805700;\n        color: #805700; }\n    .button.hollow.alert {\n      border: 1px solid #cc4b37;\n      color: #cc4b37; }\n      .button.hollow.alert:hover, .button.hollow.alert:focus {\n        border-color: #67251a;\n        color: #67251a; }\n  .button.disabled, .button[disabled] {\n    opacity: 0.25;\n    cursor: not-allowed; }\n    .button.disabled:hover, .button.disabled:focus, .button[disabled]:hover, .button[disabled]:focus {\n      background-color: #1779ba;\n      color: #fefefe; }\n    .button.disabled.primary, .button[disabled].primary {\n      opacity: 0.25;\n      cursor: not-allowed; }\n      .button.disabled.primary:hover, .button.disabled.primary:focus, .button[disabled].primary:hover, .button[disabled].primary:focus {\n        background-color: #1779ba;\n        color: #fefefe; }\n    .button.disabled.secondary, .button[disabled].secondary {\n      opacity: 0.25;\n      cursor: not-allowed; }\n      .button.disabled.secondary:hover, .button.disabled.secondary:focus, .button[disabled].secondary:hover, .button[disabled].secondary:focus {\n        background-color: #767676;\n        color: #fefefe; }\n    .button.disabled.success, .button[disabled].success {\n      opacity: 0.25;\n      cursor: not-allowed; }\n      .button.disabled.success:hover, .button.disabled.success:focus, .button[disabled].success:hover, .button[disabled].success:focus {\n        background-color: #3adb76;\n        color: #fefefe; }\n    .button.disabled.warning, .button[disabled].warning {\n      opacity: 0.25;\n      cursor: not-allowed; }\n      .button.disabled.warning:hover, .button.disabled.warning:focus, .button[disabled].warning:hover, .button[disabled].warning:focus {\n        background-color: #ffae00;\n        color: #fefefe; }\n    .button.disabled.alert, .button[disabled].alert {\n      opacity: 0.25;\n      cursor: not-allowed; }\n      .button.disabled.alert:hover, .button.disabled.alert:focus, .button[disabled].alert:hover, .button[disabled].alert:focus {\n        background-color: #cc4b37;\n        color: #fefefe; }\n  .button.dropdown::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 0.4em;\n    content: '';\n    border-bottom-width: 0;\n    border-top-style: solid;\n    border-color: #fefefe transparent transparent;\n    position: relative;\n    top: 0.4em;\n    display: inline-block;\n    float: right;\n    margin-left: 1em; }\n  .button.arrow-only::after {\n    top: -0.1em;\n    float: none;\n    margin-left: 0; }\n\n.accordion {\n  margin-left: 0;\n  background: #fefefe;\n  list-style-type: none; }\n\n.accordion-item:first-child > :first-child {\n  border-radius: 0 0 0 0; }\n\n.accordion-item:last-child > :last-child {\n  border-radius: 0 0 0 0; }\n\n.accordion-title {\n  position: relative;\n  display: block;\n  padding: 1.25rem 1rem;\n  border: 1px solid #e6e6e6;\n  border-bottom: 0;\n  font-size: 0.75rem;\n  line-height: 1;\n  color: #1779ba; }\n  :last-child:not(.is-active) > .accordion-title {\n    border-bottom: 1px solid #e6e6e6;\n    border-radius: 0 0 0 0; }\n  .accordion-title:hover, .accordion-title:focus {\n    background-color: #e6e6e6; }\n  .accordion-title::before {\n    position: absolute;\n    top: 50%;\n    right: 1rem;\n    margin-top: -0.5rem;\n    content: '+'; }\n  .is-active > .accordion-title::before {\n    content: '\\2013'; }\n\n.accordion-content {\n  display: none;\n  padding: 1rem;\n  border: 1px solid #e6e6e6;\n  border-bottom: 0;\n  background-color: #fefefe;\n  color: #0a0a0a; }\n  :last-child > .accordion-content:last-child {\n    border-bottom: 1px solid #e6e6e6; }\n\n.is-accordion-submenu-parent > a {\n  position: relative; }\n  .is-accordion-submenu-parent > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-bottom-width: 0;\n    border-top-style: solid;\n    border-color: #1779ba transparent transparent;\n    position: absolute;\n    top: 50%;\n    margin-top: -3px;\n    right: 1rem; }\n\n.is-accordion-submenu-parent[aria-expanded='true'] > a::after {\n  transform: rotate(180deg);\n  transform-origin: 50% 50%; }\n\n.badge {\n  display: inline-block;\n  min-width: 2.1em;\n  padding: 0.3em;\n  border-radius: 50%;\n  font-size: 0.6rem;\n  text-align: center;\n  background: #1779ba;\n  color: #fefefe; }\n  .badge.primary {\n    background: #1779ba;\n    color: #fefefe; }\n  .badge.secondary {\n    background: #767676;\n    color: #fefefe; }\n  .badge.success {\n    background: #3adb76;\n    color: #0a0a0a; }\n  .badge.warning {\n    background: #ffae00;\n    color: #0a0a0a; }\n  .badge.alert {\n    background: #cc4b37;\n    color: #fefefe; }\n\n.breadcrumbs {\n  margin: 0 0 1rem 0;\n  list-style: none; }\n  .breadcrumbs::before, .breadcrumbs::after {\n    display: table;\n    content: ' '; }\n  .breadcrumbs::after {\n    clear: both; }\n  .breadcrumbs li {\n    float: left;\n    font-size: 0.6875rem;\n    color: #0a0a0a;\n    cursor: default;\n    text-transform: uppercase; }\n    .breadcrumbs li:not(:last-child)::after {\n      position: relative;\n      top: 1px;\n      margin: 0 0.75rem;\n      opacity: 1;\n      content: \"/\";\n      color: #cacaca; }\n  .breadcrumbs a {\n    color: #1779ba; }\n    .breadcrumbs a:hover {\n      text-decoration: underline; }\n  .breadcrumbs .disabled {\n    color: #cacaca;\n    cursor: not-allowed; }\n\n.button-group {\n  margin-bottom: 1rem;\n  font-size: 0; }\n  .button-group::before, .button-group::after {\n    display: table;\n    content: ' '; }\n  .button-group::after {\n    clear: both; }\n  .button-group .button {\n    margin: 0;\n    margin-right: 1px;\n    margin-bottom: 1px;\n    font-size: 0.9rem; }\n    .button-group .button:last-child {\n      margin-right: 0; }\n  .button-group.tiny .button {\n    font-size: 0.6rem; }\n  .button-group.small .button {\n    font-size: 0.75rem; }\n  .button-group.large .button {\n    font-size: 1.25rem; }\n  .button-group.expanded {\n    margin-right: -1px; }\n    .button-group.expanded::before, .button-group.expanded::after {\n      display: none; }\n    .button-group.expanded .button:first-child:nth-last-child(2), .button-group.expanded .button:first-child:nth-last-child(2):first-child:nth-last-child(2) ~ .button {\n      display: inline-block;\n      width: calc(50% - 1px);\n      margin-right: 1px; }\n      .button-group.expanded .button:first-child:nth-last-child(2):last-child, .button-group.expanded .button:first-child:nth-last-child(2):first-child:nth-last-child(2) ~ .button:last-child {\n        margin-right: -6px; }\n    .button-group.expanded .button:first-child:nth-last-child(3), .button-group.expanded .button:first-child:nth-last-child(3):first-child:nth-last-child(3) ~ .button {\n      display: inline-block;\n      width: calc(33.33333% - 1px);\n      margin-right: 1px; }\n      .button-group.expanded .button:first-child:nth-last-child(3):last-child, .button-group.expanded .button:first-child:nth-last-child(3):first-child:nth-last-child(3) ~ .button:last-child {\n        margin-right: -6px; }\n    .button-group.expanded .button:first-child:nth-last-child(4), .button-group.expanded .button:first-child:nth-last-child(4):first-child:nth-last-child(4) ~ .button {\n      display: inline-block;\n      width: calc(25% - 1px);\n      margin-right: 1px; }\n      .button-group.expanded .button:first-child:nth-last-child(4):last-child, .button-group.expanded .button:first-child:nth-last-child(4):first-child:nth-last-child(4) ~ .button:last-child {\n        margin-right: -6px; }\n    .button-group.expanded .button:first-child:nth-last-child(5), .button-group.expanded .button:first-child:nth-last-child(5):first-child:nth-last-child(5) ~ .button {\n      display: inline-block;\n      width: calc(20% - 1px);\n      margin-right: 1px; }\n      .button-group.expanded .button:first-child:nth-last-child(5):last-child, .button-group.expanded .button:first-child:nth-last-child(5):first-child:nth-last-child(5) ~ .button:last-child {\n        margin-right: -6px; }\n    .button-group.expanded .button:first-child:nth-last-child(6), .button-group.expanded .button:first-child:nth-last-child(6):first-child:nth-last-child(6) ~ .button {\n      display: inline-block;\n      width: calc(16.66667% - 1px);\n      margin-right: 1px; }\n      .button-group.expanded .button:first-child:nth-last-child(6):last-child, .button-group.expanded .button:first-child:nth-last-child(6):first-child:nth-last-child(6) ~ .button:last-child {\n        margin-right: -6px; }\n  .button-group.primary .button {\n    background-color: #1779ba;\n    color: #fefefe; }\n    .button-group.primary .button:hover, .button-group.primary .button:focus {\n      background-color: #126195;\n      color: #fefefe; }\n  .button-group.secondary .button {\n    background-color: #767676;\n    color: #fefefe; }\n    .button-group.secondary .button:hover, .button-group.secondary .button:focus {\n      background-color: #5e5e5e;\n      color: #fefefe; }\n  .button-group.success .button {\n    background-color: #3adb76;\n    color: #0a0a0a; }\n    .button-group.success .button:hover, .button-group.success .button:focus {\n      background-color: #22bb5b;\n      color: #0a0a0a; }\n  .button-group.warning .button {\n    background-color: #ffae00;\n    color: #0a0a0a; }\n    .button-group.warning .button:hover, .button-group.warning .button:focus {\n      background-color: #cc8b00;\n      color: #0a0a0a; }\n  .button-group.alert .button {\n    background-color: #cc4b37;\n    color: #fefefe; }\n    .button-group.alert .button:hover, .button-group.alert .button:focus {\n      background-color: #a53b2a;\n      color: #fefefe; }\n  .button-group.stacked .button, .button-group.stacked-for-small .button, .button-group.stacked-for-medium .button {\n    width: 100%; }\n    .button-group.stacked .button:last-child, .button-group.stacked-for-small .button:last-child, .button-group.stacked-for-medium .button:last-child {\n      margin-bottom: 0; }\n  @media print, screen and (min-width: 40em) {\n    .button-group.stacked-for-small .button {\n      width: auto;\n      margin-bottom: 0; } }\n  @media print, screen and (min-width: 64em) {\n    .button-group.stacked-for-medium .button {\n      width: auto;\n      margin-bottom: 0; } }\n  @media screen and (max-width: 39.9375em) {\n    .button-group.stacked-for-small.expanded {\n      display: block; }\n      .button-group.stacked-for-small.expanded .button {\n        display: block;\n        margin-right: 0; } }\n\n.callout {\n  position: relative;\n  margin: 0 0 1rem 0;\n  padding: 1rem;\n  border: 1px solid rgba(10, 10, 10, 0.25);\n  border-radius: 0;\n  background-color: white;\n  color: #0a0a0a; }\n  .callout > :first-child {\n    margin-top: 0; }\n  .callout > :last-child {\n    margin-bottom: 0; }\n  .callout.primary {\n    background-color: #d7ecfa;\n    color: #0a0a0a; }\n  .callout.secondary {\n    background-color: #eaeaea;\n    color: #0a0a0a; }\n  .callout.success {\n    background-color: #e1faea;\n    color: #0a0a0a; }\n  .callout.warning {\n    background-color: #fff3d9;\n    color: #0a0a0a; }\n  .callout.alert {\n    background-color: #f7e4e1;\n    color: #0a0a0a; }\n  .callout.small {\n    padding-top: 0.5rem;\n    padding-right: 0.5rem;\n    padding-bottom: 0.5rem;\n    padding-left: 0.5rem; }\n  .callout.large {\n    padding-top: 3rem;\n    padding-right: 3rem;\n    padding-bottom: 3rem;\n    padding-left: 3rem; }\n\n.card {\n  margin-bottom: 1rem;\n  border: 1px solid #e6e6e6;\n  border-radius: 0;\n  background: #fefefe;\n  box-shadow: none;\n  overflow: hidden;\n  color: #0a0a0a; }\n  .card > :last-child {\n    margin-bottom: 0; }\n\n.card-divider {\n  padding: 1rem;\n  background: #e6e6e6; }\n  .card-divider > :last-child {\n    margin-bottom: 0; }\n\n.card-section {\n  padding: 1rem; }\n  .card-section > :last-child {\n    margin-bottom: 0; }\n\n.close-button {\n  position: absolute;\n  color: #8a8a8a;\n  cursor: pointer; }\n  [data-whatinput='mouse'] .close-button {\n    outline: 0; }\n  .close-button:hover, .close-button:focus {\n    color: #0a0a0a; }\n  .close-button.small {\n    right: 0.66rem;\n    top: 0.33em;\n    font-size: 1.5em;\n    line-height: 1; }\n  .close-button, .close-button.medium {\n    right: 1rem;\n    top: 0.5rem;\n    font-size: 2em;\n    line-height: 1; }\n\n.menu {\n  margin: 0;\n  list-style-type: none; }\n  .menu > li {\n    display: table-cell;\n    vertical-align: middle; }\n    [data-whatinput='mouse'] .menu > li {\n      outline: 0; }\n  .menu > li > a {\n    display: block;\n    padding: 0.7rem 1rem;\n    line-height: 1; }\n  .menu input,\n  .menu select,\n  .menu a,\n  .menu button {\n    margin-bottom: 0; }\n  .menu > li > a img,\n  .menu > li > a i,\n  .menu > li > a svg {\n    vertical-align: middle; }\n    .menu > li > a img + span,\n    .menu > li > a i + span,\n    .menu > li > a svg + span {\n      vertical-align: middle; }\n  .menu > li > a img,\n  .menu > li > a i,\n  .menu > li > a svg {\n    margin-right: 0.25rem;\n    display: inline-block; }\n  .menu > li, .menu.horizontal > li {\n    display: table-cell; }\n  .menu.expanded {\n    display: table;\n    width: 100%;\n    table-layout: fixed; }\n    .menu.expanded > li:first-child:last-child {\n      width: 100%; }\n  .menu.vertical > li {\n    display: block; }\n  @media print, screen and (min-width: 40em) {\n    .menu.medium-horizontal > li {\n      display: table-cell; }\n    .menu.medium-expanded {\n      display: table;\n      width: 100%;\n      table-layout: fixed; }\n      .menu.medium-expanded > li:first-child:last-child {\n        width: 100%; }\n    .menu.medium-vertical > li {\n      display: block; } }\n  @media print, screen and (min-width: 64em) {\n    .menu.large-horizontal > li {\n      display: table-cell; }\n    .menu.large-expanded {\n      display: table;\n      width: 100%;\n      table-layout: fixed; }\n      .menu.large-expanded > li:first-child:last-child {\n        width: 100%; }\n    .menu.large-vertical > li {\n      display: block; } }\n  .menu.simple li {\n    display: inline-block;\n    margin-right: 1rem;\n    line-height: 1; }\n  .menu.simple a {\n    padding: 0; }\n  .menu.align-right::before, .menu.align-right::after {\n    display: table;\n    content: ' '; }\n  .menu.align-right::after {\n    clear: both; }\n  .menu.align-right > li {\n    float: right; }\n  .menu.icon-top > li > a {\n    text-align: center; }\n    .menu.icon-top > li > a img,\n    .menu.icon-top > li > a i,\n    .menu.icon-top > li > a svg {\n      display: block;\n      margin: 0 auto 0.25rem; }\n  .menu.icon-top.vertical a > span {\n    margin: auto; }\n  .menu.nested {\n    margin-left: 1rem; }\n  .menu .active > a {\n    background: #1779ba;\n    color: #fefefe; }\n  .menu.menu-bordered li {\n    border: 1px solid #e6e6e6; }\n    .menu.menu-bordered li:not(:first-child) {\n      border-top: 0; }\n  .menu.menu-hover li:hover {\n    background-color: #e6e6e6; }\n\n.menu-text {\n  padding-top: 0;\n  padding-bottom: 0;\n  padding: 0.7rem 1rem;\n  font-weight: bold;\n  line-height: 1;\n  color: inherit; }\n\n.menu-centered {\n  text-align: center; }\n  .menu-centered > .menu {\n    display: inline-block; }\n\n.no-js [data-responsive-menu] ul {\n  display: none; }\n\n.menu-icon {\n  position: relative;\n  display: inline-block;\n  vertical-align: middle;\n  width: 20px;\n  height: 16px;\n  cursor: pointer; }\n  .menu-icon::after {\n    position: absolute;\n    top: 0;\n    left: 0;\n    display: block;\n    width: 100%;\n    height: 2px;\n    background: #fefefe;\n    box-shadow: 0 7px 0 #fefefe, 0 14px 0 #fefefe;\n    content: ''; }\n  .menu-icon:hover::after {\n    background: #cacaca;\n    box-shadow: 0 7px 0 #cacaca, 0 14px 0 #cacaca; }\n\n.menu-icon.dark {\n  position: relative;\n  display: inline-block;\n  vertical-align: middle;\n  width: 20px;\n  height: 16px;\n  cursor: pointer; }\n  .menu-icon.dark::after {\n    position: absolute;\n    top: 0;\n    left: 0;\n    display: block;\n    width: 100%;\n    height: 2px;\n    background: #0a0a0a;\n    box-shadow: 0 7px 0 #0a0a0a, 0 14px 0 #0a0a0a;\n    content: ''; }\n  .menu-icon.dark:hover::after {\n    background: #8a8a8a;\n    box-shadow: 0 7px 0 #8a8a8a, 0 14px 0 #8a8a8a; }\n\n.is-drilldown {\n  position: relative;\n  overflow: hidden; }\n  .is-drilldown li {\n    display: block; }\n  .is-drilldown.animate-height {\n    transition: height 0.5s; }\n\n.is-drilldown-submenu {\n  position: absolute;\n  top: 0;\n  left: 100%;\n  z-index: -1;\n  width: 100%;\n  background: #fefefe;\n  transition: transform 0.15s linear; }\n  .is-drilldown-submenu.is-active {\n    z-index: 1;\n    display: block;\n    transform: translateX(-100%); }\n  .is-drilldown-submenu.is-closing {\n    transform: translateX(100%); }\n\n.drilldown-submenu-cover-previous {\n  min-height: 100%; }\n\n.is-drilldown-submenu-parent > a {\n  position: relative; }\n  .is-drilldown-submenu-parent > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-right-width: 0;\n    border-left-style: solid;\n    border-color: transparent transparent transparent #1779ba;\n    position: absolute;\n    top: 50%;\n    margin-top: -6px;\n    right: 1rem; }\n\n.js-drilldown-back > a::before {\n  display: block;\n  width: 0;\n  height: 0;\n  border: inset 6px;\n  content: '';\n  border-left-width: 0;\n  border-right-style: solid;\n  border-color: transparent #1779ba transparent transparent;\n  border-left-width: 0;\n  display: inline-block;\n  vertical-align: middle;\n  margin-right: 0.75rem;\n  border-left-width: 0; }\n\n.dropdown-pane {\n  position: absolute;\n  z-index: 10;\n  display: block;\n  width: 300px;\n  padding: 1rem;\n  visibility: hidden;\n  border: 1px solid #cacaca;\n  border-radius: 0;\n  background-color: #fefefe;\n  font-size: 1rem; }\n  .dropdown-pane.is-open {\n    visibility: visible; }\n\n.dropdown-pane.tiny {\n  width: 100px; }\n\n.dropdown-pane.small {\n  width: 200px; }\n\n.dropdown-pane.large {\n  width: 400px; }\n\n.dropdown.menu > li.opens-left > .is-dropdown-submenu {\n  top: 100%;\n  right: 0;\n  left: auto; }\n\n.dropdown.menu > li.opens-right > .is-dropdown-submenu {\n  top: 100%;\n  right: auto;\n  left: 0; }\n\n.dropdown.menu > li.is-dropdown-submenu-parent > a {\n  position: relative;\n  padding-right: 1.5rem; }\n\n.dropdown.menu > li.is-dropdown-submenu-parent > a::after {\n  display: block;\n  width: 0;\n  height: 0;\n  border: inset 6px;\n  content: '';\n  border-bottom-width: 0;\n  border-top-style: solid;\n  border-color: #1779ba transparent transparent;\n  right: 5px;\n  margin-top: -3px; }\n\n[data-whatinput='mouse'] .dropdown.menu a {\n  outline: 0; }\n\n.no-js .dropdown.menu ul {\n  display: none; }\n\n.dropdown.menu.vertical > li .is-dropdown-submenu {\n  top: 0; }\n\n.dropdown.menu.vertical > li.opens-left > .is-dropdown-submenu {\n  right: 100%;\n  left: auto; }\n\n.dropdown.menu.vertical > li.opens-right > .is-dropdown-submenu {\n  right: auto;\n  left: 100%; }\n\n.dropdown.menu.vertical > li > a::after {\n  right: 14px; }\n\n.dropdown.menu.vertical > li.opens-left > a::after {\n  display: block;\n  width: 0;\n  height: 0;\n  border: inset 6px;\n  content: '';\n  border-left-width: 0;\n  border-right-style: solid;\n  border-color: transparent #1779ba transparent transparent; }\n\n.dropdown.menu.vertical > li.opens-right > a::after {\n  display: block;\n  width: 0;\n  height: 0;\n  border: inset 6px;\n  content: '';\n  border-right-width: 0;\n  border-left-style: solid;\n  border-color: transparent transparent transparent #1779ba; }\n\n@media print, screen and (min-width: 40em) {\n  .dropdown.menu.medium-horizontal > li.opens-left > .is-dropdown-submenu {\n    top: 100%;\n    right: 0;\n    left: auto; }\n  .dropdown.menu.medium-horizontal > li.opens-right > .is-dropdown-submenu {\n    top: 100%;\n    right: auto;\n    left: 0; }\n  .dropdown.menu.medium-horizontal > li.is-dropdown-submenu-parent > a {\n    position: relative;\n    padding-right: 1.5rem; }\n  .dropdown.menu.medium-horizontal > li.is-dropdown-submenu-parent > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-bottom-width: 0;\n    border-top-style: solid;\n    border-color: #1779ba transparent transparent;\n    right: 5px;\n    margin-top: -3px; }\n  .dropdown.menu.medium-vertical > li .is-dropdown-submenu {\n    top: 0; }\n  .dropdown.menu.medium-vertical > li.opens-left > .is-dropdown-submenu {\n    right: 100%;\n    left: auto; }\n  .dropdown.menu.medium-vertical > li.opens-right > .is-dropdown-submenu {\n    right: auto;\n    left: 100%; }\n  .dropdown.menu.medium-vertical > li > a::after {\n    right: 14px; }\n  .dropdown.menu.medium-vertical > li.opens-left > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-left-width: 0;\n    border-right-style: solid;\n    border-color: transparent #1779ba transparent transparent; }\n  .dropdown.menu.medium-vertical > li.opens-right > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-right-width: 0;\n    border-left-style: solid;\n    border-color: transparent transparent transparent #1779ba; } }\n\n@media print, screen and (min-width: 64em) {\n  .dropdown.menu.large-horizontal > li.opens-left > .is-dropdown-submenu {\n    top: 100%;\n    right: 0;\n    left: auto; }\n  .dropdown.menu.large-horizontal > li.opens-right > .is-dropdown-submenu {\n    top: 100%;\n    right: auto;\n    left: 0; }\n  .dropdown.menu.large-horizontal > li.is-dropdown-submenu-parent > a {\n    position: relative;\n    padding-right: 1.5rem; }\n  .dropdown.menu.large-horizontal > li.is-dropdown-submenu-parent > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-bottom-width: 0;\n    border-top-style: solid;\n    border-color: #1779ba transparent transparent;\n    right: 5px;\n    margin-top: -3px; }\n  .dropdown.menu.large-vertical > li .is-dropdown-submenu {\n    top: 0; }\n  .dropdown.menu.large-vertical > li.opens-left > .is-dropdown-submenu {\n    right: 100%;\n    left: auto; }\n  .dropdown.menu.large-vertical > li.opens-right > .is-dropdown-submenu {\n    right: auto;\n    left: 100%; }\n  .dropdown.menu.large-vertical > li > a::after {\n    right: 14px; }\n  .dropdown.menu.large-vertical > li.opens-left > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-left-width: 0;\n    border-right-style: solid;\n    border-color: transparent #1779ba transparent transparent; }\n  .dropdown.menu.large-vertical > li.opens-right > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-right-width: 0;\n    border-left-style: solid;\n    border-color: transparent transparent transparent #1779ba; } }\n\n.dropdown.menu.align-right .is-dropdown-submenu.first-sub {\n  top: 100%;\n  right: 0;\n  left: auto; }\n\n.is-dropdown-menu.vertical {\n  width: 100px; }\n  .is-dropdown-menu.vertical.align-right {\n    float: right; }\n\n.is-dropdown-submenu-parent {\n  position: relative; }\n  .is-dropdown-submenu-parent a::after {\n    position: absolute;\n    top: 50%;\n    right: 5px;\n    margin-top: -6px; }\n  .is-dropdown-submenu-parent.opens-inner > .is-dropdown-submenu {\n    top: 100%;\n    left: auto; }\n  .is-dropdown-submenu-parent.opens-left > .is-dropdown-submenu {\n    right: 100%;\n    left: auto; }\n  .is-dropdown-submenu-parent.opens-right > .is-dropdown-submenu {\n    right: auto;\n    left: 100%; }\n\n.is-dropdown-submenu {\n  position: absolute;\n  top: 0;\n  left: 100%;\n  z-index: 1;\n  display: none;\n  min-width: 200px;\n  border: 1px solid #cacaca;\n  background: #fefefe; }\n  .is-dropdown-submenu .is-dropdown-submenu-parent > a::after {\n    right: 14px; }\n  .is-dropdown-submenu .is-dropdown-submenu-parent.opens-left > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-left-width: 0;\n    border-right-style: solid;\n    border-color: transparent #1779ba transparent transparent; }\n  .is-dropdown-submenu .is-dropdown-submenu-parent.opens-right > a::after {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 6px;\n    content: '';\n    border-right-width: 0;\n    border-left-style: solid;\n    border-color: transparent transparent transparent #1779ba; }\n  .is-dropdown-submenu .is-dropdown-submenu {\n    margin-top: -1px; }\n  .is-dropdown-submenu > li {\n    width: 100%; }\n  .is-dropdown-submenu.js-dropdown-active {\n    display: block; }\n\n.responsive-embed, .flex-video {\n  position: relative;\n  height: 0;\n  margin-bottom: 1rem;\n  padding-bottom: 75%;\n  overflow: hidden; }\n  .responsive-embed iframe,\n  .responsive-embed object,\n  .responsive-embed embed,\n  .responsive-embed video, .flex-video iframe,\n  .flex-video object,\n  .flex-video embed,\n  .flex-video video {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%; }\n  .responsive-embed.widescreen, .flex-video.widescreen {\n    padding-bottom: 56.25%; }\n\n.label {\n  display: inline-block;\n  padding: 0.33333rem 0.5rem;\n  border-radius: 0;\n  font-size: 0.8rem;\n  line-height: 1;\n  white-space: nowrap;\n  cursor: default;\n  background: #1779ba;\n  color: #fefefe; }\n  .label.primary {\n    background: #1779ba;\n    color: #fefefe; }\n  .label.secondary {\n    background: #767676;\n    color: #fefefe; }\n  .label.success {\n    background: #3adb76;\n    color: #0a0a0a; }\n  .label.warning {\n    background: #ffae00;\n    color: #0a0a0a; }\n  .label.alert {\n    background: #cc4b37;\n    color: #fefefe; }\n\n.media-object {\n  display: block;\n  margin-bottom: 1rem; }\n  .media-object img {\n    max-width: none; }\n  @media screen and (max-width: 39.9375em) {\n    .media-object.stack-for-small .media-object-section {\n      padding: 0;\n      padding-bottom: 1rem;\n      display: block; }\n      .media-object.stack-for-small .media-object-section img {\n        width: 100%; } }\n\n.media-object-section {\n  display: table-cell;\n  vertical-align: top; }\n  .media-object-section:first-child {\n    padding-right: 1rem; }\n  .media-object-section:last-child:not(:nth-child(2)) {\n    padding-left: 1rem; }\n  .media-object-section > :last-child {\n    margin-bottom: 0; }\n  .media-object-section.middle {\n    vertical-align: middle; }\n  .media-object-section.bottom {\n    vertical-align: bottom; }\n\n.is-off-canvas-open {\n  overflow: hidden; }\n\n.js-off-canvas-overlay {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  transition: opacity 0.5s ease, visibility 0.5s ease;\n  background: rgba(254, 254, 254, 0.25);\n  opacity: 0;\n  visibility: hidden;\n  overflow: hidden; }\n  .js-off-canvas-overlay.is-visible {\n    opacity: 1;\n    visibility: visible; }\n  .js-off-canvas-overlay.is-closable {\n    cursor: pointer; }\n  .js-off-canvas-overlay.is-overlay-absolute {\n    position: absolute; }\n  .js-off-canvas-overlay.is-overlay-fixed {\n    position: fixed; }\n\n.off-canvas-wrapper {\n  position: relative;\n  overflow: hidden; }\n\n.off-canvas {\n  position: fixed;\n  z-index: 1;\n  transition: transform 0.5s ease;\n  backface-visibility: hidden;\n  background: #e6e6e6; }\n  [data-whatinput='mouse'] .off-canvas {\n    outline: 0; }\n  .off-canvas.is-transition-overlap {\n    z-index: 10; }\n    .off-canvas.is-transition-overlap.is-open {\n      box-shadow: 0 0 10px rgba(10, 10, 10, 0.7); }\n  .off-canvas.is-open {\n    transform: translate(0, 0); }\n\n.off-canvas-absolute {\n  position: absolute;\n  z-index: 1;\n  transition: transform 0.5s ease;\n  backface-visibility: hidden;\n  background: #e6e6e6; }\n  [data-whatinput='mouse'] .off-canvas-absolute {\n    outline: 0; }\n  .off-canvas-absolute.is-transition-overlap {\n    z-index: 10; }\n    .off-canvas-absolute.is-transition-overlap.is-open {\n      box-shadow: 0 0 10px rgba(10, 10, 10, 0.7); }\n  .off-canvas-absolute.is-open {\n    transform: translate(0, 0); }\n\n.position-left {\n  top: 0;\n  left: 0;\n  width: 250px;\n  height: 100%;\n  transform: translateX(-250px);\n  overflow-y: auto; }\n  .position-left.is-open ~ .off-canvas-content {\n    transform: translateX(250px); }\n  .position-left.is-transition-push::after {\n    position: absolute;\n    top: 0;\n    right: 0;\n    height: 100%;\n    width: 1px;\n    box-shadow: 0 0 10px rgba(10, 10, 10, 0.7);\n    content: \" \"; }\n  .position-left.is-transition-overlap.is-open ~ .off-canvas-content {\n    transform: none; }\n\n.position-right {\n  top: 0;\n  right: 0;\n  width: 250px;\n  height: 100%;\n  transform: translateX(250px);\n  overflow-y: auto; }\n  .position-right.is-open ~ .off-canvas-content {\n    transform: translateX(-250px); }\n  .position-right.is-transition-push::after {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 100%;\n    width: 1px;\n    box-shadow: 0 0 10px rgba(10, 10, 10, 0.7);\n    content: \" \"; }\n  .position-right.is-transition-overlap.is-open ~ .off-canvas-content {\n    transform: none; }\n\n.position-top {\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 250px;\n  transform: translateY(-250px);\n  overflow-x: auto; }\n  .position-top.is-open ~ .off-canvas-content {\n    transform: translateY(250px); }\n  .position-top.is-transition-push::after {\n    position: absolute;\n    bottom: 0;\n    left: 0;\n    height: 1px;\n    width: 100%;\n    box-shadow: 0 0 10px rgba(10, 10, 10, 0.7);\n    content: \" \"; }\n  .position-top.is-transition-overlap.is-open ~ .off-canvas-content {\n    transform: none; }\n\n.position-bottom {\n  bottom: 0;\n  left: 0;\n  width: 100%;\n  height: 250px;\n  transform: translateY(250px);\n  overflow-x: auto; }\n  .position-bottom.is-open ~ .off-canvas-content {\n    transform: translateY(-250px); }\n  .position-bottom.is-transition-push::after {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 1px;\n    width: 100%;\n    box-shadow: 0 0 10px rgba(10, 10, 10, 0.7);\n    content: \" \"; }\n  .position-bottom.is-transition-overlap.is-open ~ .off-canvas-content {\n    transform: none; }\n\n.off-canvas-content {\n  transition: transform 0.5s ease;\n  backface-visibility: hidden; }\n\n@media print, screen and (min-width: 40em) {\n  .position-left.reveal-for-medium {\n    transform: none;\n    z-index: 1; }\n    .position-left.reveal-for-medium ~ .off-canvas-content {\n      margin-left: 250px; }\n  .position-right.reveal-for-medium {\n    transform: none;\n    z-index: 1; }\n    .position-right.reveal-for-medium ~ .off-canvas-content {\n      margin-right: 250px; }\n  .position-top.reveal-for-medium {\n    transform: none;\n    z-index: 1; }\n    .position-top.reveal-for-medium ~ .off-canvas-content {\n      margin-top: 250px; }\n  .position-bottom.reveal-for-medium {\n    transform: none;\n    z-index: 1; }\n    .position-bottom.reveal-for-medium ~ .off-canvas-content {\n      margin-bottom: 250px; } }\n\n@media print, screen and (min-width: 64em) {\n  .position-left.reveal-for-large {\n    transform: none;\n    z-index: 1; }\n    .position-left.reveal-for-large ~ .off-canvas-content {\n      margin-left: 250px; }\n  .position-right.reveal-for-large {\n    transform: none;\n    z-index: 1; }\n    .position-right.reveal-for-large ~ .off-canvas-content {\n      margin-right: 250px; }\n  .position-top.reveal-for-large {\n    transform: none;\n    z-index: 1; }\n    .position-top.reveal-for-large ~ .off-canvas-content {\n      margin-top: 250px; }\n  .position-bottom.reveal-for-large {\n    transform: none;\n    z-index: 1; }\n    .position-bottom.reveal-for-large ~ .off-canvas-content {\n      margin-bottom: 250px; } }\n\n.orbit {\n  position: relative; }\n\n.orbit-container {\n  position: relative;\n  height: 0;\n  margin: 0;\n  list-style: none;\n  overflow: hidden; }\n\n.orbit-slide {\n  width: 100%; }\n  .orbit-slide.no-motionui.is-active {\n    top: 0;\n    left: 0; }\n\n.orbit-figure {\n  margin: 0; }\n\n.orbit-image {\n  width: 100%;\n  max-width: 100%;\n  margin: 0; }\n\n.orbit-caption {\n  position: absolute;\n  bottom: 0;\n  width: 100%;\n  margin-bottom: 0;\n  padding: 1rem;\n  background-color: rgba(10, 10, 10, 0.5);\n  color: #fefefe; }\n\n.orbit-previous, .orbit-next {\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%);\n  z-index: 10;\n  padding: 1rem;\n  color: #fefefe; }\n  [data-whatinput='mouse'] .orbit-previous, [data-whatinput='mouse'] .orbit-next {\n    outline: 0; }\n  .orbit-previous:hover, .orbit-next:hover, .orbit-previous:active, .orbit-next:active, .orbit-previous:focus, .orbit-next:focus {\n    background-color: rgba(10, 10, 10, 0.5); }\n\n.orbit-previous {\n  left: 0; }\n\n.orbit-next {\n  left: auto;\n  right: 0; }\n\n.orbit-bullets {\n  position: relative;\n  margin-top: 0.8rem;\n  margin-bottom: 0.8rem;\n  text-align: center; }\n  [data-whatinput='mouse'] .orbit-bullets {\n    outline: 0; }\n  .orbit-bullets button {\n    width: 1.2rem;\n    height: 1.2rem;\n    margin: 0.1rem;\n    border-radius: 50%;\n    background-color: #cacaca; }\n    .orbit-bullets button:hover {\n      background-color: #8a8a8a; }\n    .orbit-bullets button.is-active {\n      background-color: #8a8a8a; }\n\n.pagination {\n  margin-left: 0;\n  margin-bottom: 1rem; }\n  .pagination::before, .pagination::after {\n    display: table;\n    content: ' '; }\n  .pagination::after {\n    clear: both; }\n  .pagination li {\n    margin-right: 0.0625rem;\n    border-radius: 0;\n    font-size: 0.875rem;\n    display: none; }\n    .pagination li:last-child, .pagination li:first-child {\n      display: inline-block; }\n    @media print, screen and (min-width: 40em) {\n      .pagination li {\n        display: inline-block; } }\n  .pagination a,\n  .pagination button {\n    display: block;\n    padding: 0.1875rem 0.625rem;\n    border-radius: 0;\n    color: #0a0a0a; }\n    .pagination a:hover,\n    .pagination button:hover {\n      background: #e6e6e6; }\n  .pagination .current {\n    padding: 0.1875rem 0.625rem;\n    background: #1779ba;\n    color: #fefefe;\n    cursor: default; }\n  .pagination .disabled {\n    padding: 0.1875rem 0.625rem;\n    color: #cacaca;\n    cursor: not-allowed; }\n    .pagination .disabled:hover {\n      background: transparent; }\n  .pagination .ellipsis::after {\n    padding: 0.1875rem 0.625rem;\n    content: '\\2026';\n    color: #0a0a0a; }\n\n.pagination-previous a::before,\n.pagination-previous.disabled::before {\n  display: inline-block;\n  margin-right: 0.5rem;\n  content: '\\AB'; }\n\n.pagination-next a::after,\n.pagination-next.disabled::after {\n  display: inline-block;\n  margin-left: 0.5rem;\n  content: '\\BB'; }\n\n.progress {\n  height: 1rem;\n  margin-bottom: 1rem;\n  border-radius: 0;\n  background-color: #cacaca; }\n  .progress.primary .progress-meter {\n    background-color: #1779ba; }\n  .progress.secondary .progress-meter {\n    background-color: #767676; }\n  .progress.success .progress-meter {\n    background-color: #3adb76; }\n  .progress.warning .progress-meter {\n    background-color: #ffae00; }\n  .progress.alert .progress-meter {\n    background-color: #cc4b37; }\n\n.progress-meter {\n  position: relative;\n  display: block;\n  width: 0%;\n  height: 100%;\n  background-color: #1779ba; }\n\n.progress-meter-text {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  position: absolute;\n  margin: 0;\n  font-size: 0.75rem;\n  font-weight: bold;\n  color: #fefefe;\n  white-space: nowrap; }\n\n.slider {\n  position: relative;\n  height: 0.5rem;\n  margin-top: 1.25rem;\n  margin-bottom: 2.25rem;\n  background-color: #e6e6e6;\n  cursor: pointer;\n  user-select: none;\n  touch-action: none; }\n\n.slider-fill {\n  position: absolute;\n  top: 0;\n  left: 0;\n  display: inline-block;\n  max-width: 100%;\n  height: 0.5rem;\n  background-color: #cacaca;\n  transition: all 0.2s ease-in-out; }\n  .slider-fill.is-dragging {\n    transition: all 0s linear; }\n\n.slider-handle {\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%);\n  position: absolute;\n  left: 0;\n  z-index: 1;\n  display: inline-block;\n  width: 1.4rem;\n  height: 1.4rem;\n  border-radius: 0;\n  background-color: #1779ba;\n  transition: all 0.2s ease-in-out;\n  touch-action: manipulation; }\n  [data-whatinput='mouse'] .slider-handle {\n    outline: 0; }\n  .slider-handle:hover {\n    background-color: #14679e; }\n  .slider-handle.is-dragging {\n    transition: all 0s linear; }\n\n.slider.disabled,\n.slider[disabled] {\n  opacity: 0.25;\n  cursor: not-allowed; }\n\n.slider.vertical {\n  display: inline-block;\n  width: 0.5rem;\n  height: 12.5rem;\n  margin: 0 1.25rem;\n  transform: scale(1, -1); }\n  .slider.vertical .slider-fill {\n    top: 0;\n    width: 0.5rem;\n    max-height: 100%; }\n  .slider.vertical .slider-handle {\n    position: absolute;\n    top: 0;\n    left: 50%;\n    width: 1.4rem;\n    height: 1.4rem;\n    transform: translateX(-50%); }\n\n.sticky-container {\n  position: relative; }\n\n.sticky {\n  position: relative;\n  z-index: 0;\n  transform: translate3d(0, 0, 0); }\n\n.sticky.is-stuck {\n  position: fixed;\n  z-index: 5; }\n  .sticky.is-stuck.is-at-top {\n    top: 0; }\n  .sticky.is-stuck.is-at-bottom {\n    bottom: 0; }\n\n.sticky.is-anchored {\n  position: relative;\n  right: auto;\n  left: auto; }\n  .sticky.is-anchored.is-at-bottom {\n    bottom: 0; }\n\nbody.is-reveal-open {\n  overflow: hidden; }\n\nhtml.is-reveal-open,\nhtml.is-reveal-open body {\n  min-height: 100%;\n  overflow: hidden;\n  user-select: none; }\n\n.reveal-overlay {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  z-index: 1005;\n  display: none;\n  background-color: rgba(10, 10, 10, 0.45);\n  overflow-y: scroll; }\n\n.reveal {\n  z-index: 1006;\n  backface-visibility: hidden;\n  display: none;\n  padding: 1rem;\n  border: 1px solid #cacaca;\n  border-radius: 0;\n  background-color: #fefefe;\n  position: relative;\n  top: 100px;\n  margin-right: auto;\n  margin-left: auto;\n  overflow-y: auto; }\n  [data-whatinput='mouse'] .reveal {\n    outline: 0; }\n  @media print, screen and (min-width: 40em) {\n    .reveal {\n      min-height: 0; } }\n  .reveal .column, .reveal .columns,\n  .reveal .columns {\n    min-width: 0; }\n  .reveal > :last-child {\n    margin-bottom: 0; }\n  @media print, screen and (min-width: 40em) {\n    .reveal {\n      width: 600px;\n      max-width: 75rem; } }\n  @media print, screen and (min-width: 40em) {\n    .reveal .reveal {\n      right: auto;\n      left: auto;\n      margin: 0 auto; } }\n  .reveal.collapse {\n    padding: 0; }\n  @media print, screen and (min-width: 40em) {\n    .reveal.tiny {\n      width: 30%;\n      max-width: 75rem; } }\n  @media print, screen and (min-width: 40em) {\n    .reveal.small {\n      width: 50%;\n      max-width: 75rem; } }\n  @media print, screen and (min-width: 40em) {\n    .reveal.large {\n      width: 90%;\n      max-width: 75rem; } }\n  .reveal.full {\n    top: 0;\n    left: 0;\n    width: 100%;\n    max-width: none;\n    height: 100%;\n    height: 100vh;\n    min-height: 100vh;\n    margin-left: 0;\n    border: 0;\n    border-radius: 0; }\n  @media screen and (max-width: 39.9375em) {\n    .reveal {\n      top: 0;\n      left: 0;\n      width: 100%;\n      max-width: none;\n      height: 100%;\n      height: 100vh;\n      min-height: 100vh;\n      margin-left: 0;\n      border: 0;\n      border-radius: 0; } }\n  .reveal.without-overlay {\n    position: fixed; }\n\n.switch {\n  height: 2rem;\n  position: relative;\n  margin-bottom: 1rem;\n  outline: 0;\n  font-size: 0.875rem;\n  font-weight: bold;\n  color: #fefefe;\n  user-select: none; }\n\n.switch-input {\n  position: absolute;\n  margin-bottom: 0;\n  opacity: 0; }\n\n.switch-paddle {\n  position: relative;\n  display: block;\n  width: 4rem;\n  height: 2rem;\n  border-radius: 0;\n  background: #cacaca;\n  transition: all 0.25s ease-out;\n  font-weight: inherit;\n  color: inherit;\n  cursor: pointer; }\n  input + .switch-paddle {\n    margin: 0; }\n  .switch-paddle::after {\n    position: absolute;\n    top: 0.25rem;\n    left: 0.25rem;\n    display: block;\n    width: 1.5rem;\n    height: 1.5rem;\n    transform: translate3d(0, 0, 0);\n    border-radius: 0;\n    background: #fefefe;\n    transition: all 0.25s ease-out;\n    content: ''; }\n  input:checked ~ .switch-paddle {\n    background: #1779ba; }\n    input:checked ~ .switch-paddle::after {\n      left: 2.25rem; }\n  [data-whatinput='mouse'] input:focus ~ .switch-paddle {\n    outline: 0; }\n\n.switch-active, .switch-inactive {\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%); }\n\n.switch-active {\n  left: 8%;\n  display: none; }\n  input:checked + label > .switch-active {\n    display: block; }\n\n.switch-inactive {\n  right: 15%; }\n  input:checked + label > .switch-inactive {\n    display: none; }\n\n.switch.tiny {\n  height: 1.5rem; }\n  .switch.tiny .switch-paddle {\n    width: 3rem;\n    height: 1.5rem;\n    font-size: 0.625rem; }\n  .switch.tiny .switch-paddle::after {\n    top: 0.25rem;\n    left: 0.25rem;\n    width: 1rem;\n    height: 1rem; }\n  .switch.tiny input:checked ~ .switch-paddle::after {\n    left: 1.75rem; }\n\n.switch.small {\n  height: 1.75rem; }\n  .switch.small .switch-paddle {\n    width: 3.5rem;\n    height: 1.75rem;\n    font-size: 0.75rem; }\n  .switch.small .switch-paddle::after {\n    top: 0.25rem;\n    left: 0.25rem;\n    width: 1.25rem;\n    height: 1.25rem; }\n  .switch.small input:checked ~ .switch-paddle::after {\n    left: 2rem; }\n\n.switch.large {\n  height: 2.5rem; }\n  .switch.large .switch-paddle {\n    width: 5rem;\n    height: 2.5rem;\n    font-size: 1rem; }\n  .switch.large .switch-paddle::after {\n    top: 0.25rem;\n    left: 0.25rem;\n    width: 2rem;\n    height: 2rem; }\n  .switch.large input:checked ~ .switch-paddle::after {\n    left: 2.75rem; }\n\ntable {\n  width: 100%;\n  margin-bottom: 1rem;\n  border-radius: 0; }\n  table thead,\n  table tbody,\n  table tfoot {\n    border: 1px solid #f1f1f1;\n    background-color: #fefefe; }\n  table caption {\n    padding: 0.5rem 0.625rem 0.625rem;\n    font-weight: bold; }\n  table thead {\n    background: #f8f8f8;\n    color: #0a0a0a; }\n  table tfoot {\n    background: #f1f1f1;\n    color: #0a0a0a; }\n  table thead tr,\n  table tfoot tr {\n    background: transparent; }\n  table thead th,\n  table thead td,\n  table tfoot th,\n  table tfoot td {\n    padding: 0.5rem 0.625rem 0.625rem;\n    font-weight: bold;\n    text-align: left; }\n  table tbody th,\n  table tbody td {\n    padding: 0.5rem 0.625rem 0.625rem; }\n  table tbody tr:nth-child(even) {\n    border-bottom: 0;\n    background-color: #f1f1f1; }\n  table.unstriped tbody {\n    background-color: #fefefe; }\n    table.unstriped tbody tr {\n      border-bottom: 0;\n      border-bottom: 1px solid #f1f1f1;\n      background-color: #fefefe; }\n\n@media screen and (max-width: 63.9375em) {\n  table.stack thead {\n    display: none; }\n  table.stack tfoot {\n    display: none; }\n  table.stack tr,\n  table.stack th,\n  table.stack td {\n    display: block; }\n  table.stack td {\n    border-top: 0; } }\n\ntable.scroll {\n  display: block;\n  width: 100%;\n  overflow-x: auto; }\n\ntable.hover thead tr:hover {\n  background-color: #f3f3f3; }\n\ntable.hover tfoot tr:hover {\n  background-color: #ececec; }\n\ntable.hover tbody tr:hover {\n  background-color: #f9f9f9; }\n\ntable.hover:not(.unstriped) tr:nth-of-type(even):hover {\n  background-color: #ececec; }\n\n.table-scroll {\n  overflow-x: auto; }\n  .table-scroll table {\n    width: auto; }\n\n.tabs {\n  margin: 0;\n  border: 1px solid #e6e6e6;\n  background: #fefefe;\n  list-style-type: none; }\n  .tabs::before, .tabs::after {\n    display: table;\n    content: ' '; }\n  .tabs::after {\n    clear: both; }\n\n.tabs.vertical > li {\n  display: block;\n  float: none;\n  width: auto; }\n\n.tabs.simple > li > a {\n  padding: 0; }\n  .tabs.simple > li > a:hover {\n    background: transparent; }\n\n.tabs.primary {\n  background: #1779ba; }\n  .tabs.primary > li > a {\n    color: #fefefe; }\n    .tabs.primary > li > a:hover, .tabs.primary > li > a:focus {\n      background: #1673b1; }\n\n.tabs-title {\n  float: left; }\n  .tabs-title > a {\n    display: block;\n    padding: 1.25rem 1.5rem;\n    font-size: 0.75rem;\n    line-height: 1;\n    color: #1779ba; }\n    .tabs-title > a:hover {\n      background: #fefefe;\n      color: #1468a0; }\n    .tabs-title > a:focus, .tabs-title > a[aria-selected='true'] {\n      background: #e6e6e6;\n      color: #1779ba; }\n\n.tabs-content {\n  border: 1px solid #e6e6e6;\n  border-top: 0;\n  background: #fefefe;\n  color: #0a0a0a;\n  transition: all 0.5s ease; }\n\n.tabs-content.vertical {\n  border: 1px solid #e6e6e6;\n  border-left: 0; }\n\n.tabs-panel {\n  display: none;\n  padding: 1rem; }\n  .tabs-panel[aria-hidden=\"false\"] {\n    display: block; }\n\n.thumbnail {\n  display: inline-block;\n  max-width: 100%;\n  margin-bottom: 1rem;\n  border: solid 4px #fefefe;\n  border-radius: 0;\n  box-shadow: 0 0 0 1px rgba(10, 10, 10, 0.2);\n  line-height: 0; }\n\na.thumbnail {\n  transition: box-shadow 200ms ease-out; }\n  a.thumbnail:hover, a.thumbnail:focus {\n    box-shadow: 0 0 6px 1px rgba(23, 121, 186, 0.5); }\n  a.thumbnail image {\n    box-shadow: none; }\n\n.title-bar {\n  padding: 0.5rem;\n  background: #0a0a0a;\n  color: #fefefe; }\n  .title-bar::before, .title-bar::after {\n    display: table;\n    content: ' '; }\n  .title-bar::after {\n    clear: both; }\n  .title-bar .menu-icon {\n    margin-left: 0.25rem;\n    margin-right: 0.25rem; }\n\n.title-bar-left {\n  float: left; }\n\n.title-bar-right {\n  float: right;\n  text-align: right; }\n\n.title-bar-title {\n  display: inline-block;\n  vertical-align: middle;\n  font-weight: bold; }\n\n.has-tip {\n  position: relative;\n  display: inline-block;\n  border-bottom: dotted 1px #8a8a8a;\n  font-weight: bold;\n  cursor: help; }\n\n.tooltip {\n  position: absolute;\n  top: calc(100% + 0.6495rem);\n  z-index: 1200;\n  max-width: 10rem;\n  padding: 0.75rem;\n  border-radius: 0;\n  background-color: #0a0a0a;\n  font-size: 80%;\n  color: #fefefe; }\n  .tooltip::before {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 0.75rem;\n    content: '';\n    border-top-width: 0;\n    border-bottom-style: solid;\n    border-color: transparent transparent #0a0a0a;\n    position: absolute;\n    bottom: 100%;\n    left: 50%;\n    transform: translateX(-50%); }\n  .tooltip.top::before {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 0.75rem;\n    content: '';\n    border-bottom-width: 0;\n    border-top-style: solid;\n    border-color: #0a0a0a transparent transparent;\n    top: 100%;\n    bottom: auto; }\n  .tooltip.left::before {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 0.75rem;\n    content: '';\n    border-right-width: 0;\n    border-left-style: solid;\n    border-color: transparent transparent transparent #0a0a0a;\n    top: 50%;\n    bottom: auto;\n    left: 100%;\n    transform: translateY(-50%); }\n  .tooltip.right::before {\n    display: block;\n    width: 0;\n    height: 0;\n    border: inset 0.75rem;\n    content: '';\n    border-left-width: 0;\n    border-right-style: solid;\n    border-color: transparent #0a0a0a transparent transparent;\n    top: 50%;\n    right: 100%;\n    bottom: auto;\n    left: auto;\n    transform: translateY(-50%); }\n\n.top-bar {\n  padding: 0.5rem; }\n  .top-bar::before, .top-bar::after {\n    display: table;\n    content: ' '; }\n  .top-bar::after {\n    clear: both; }\n  .top-bar,\n  .top-bar ul {\n    background-color: #e6e6e6; }\n  .top-bar input {\n    max-width: 200px;\n    margin-right: 1rem; }\n  .top-bar .input-group-field {\n    width: 100%;\n    margin-right: 0; }\n  .top-bar input.button {\n    width: auto; }\n  .top-bar .top-bar-left,\n  .top-bar .top-bar-right {\n    width: 100%; }\n  @media print, screen and (min-width: 40em) {\n    .top-bar .top-bar-left,\n    .top-bar .top-bar-right {\n      width: auto; } }\n  @media screen and (max-width: 63.9375em) {\n    .top-bar.stacked-for-medium .top-bar-left,\n    .top-bar.stacked-for-medium .top-bar-right {\n      width: 100%; } }\n  @media screen and (max-width: 74.9375em) {\n    .top-bar.stacked-for-large .top-bar-left,\n    .top-bar.stacked-for-large .top-bar-right {\n      width: 100%; } }\n\n.top-bar-title {\n  display: inline-block;\n  float: left;\n  padding: 0.5rem 1rem 0.5rem 0; }\n  .top-bar-title .menu-icon {\n    bottom: 2px; }\n\n.top-bar-left {\n  float: left; }\n\n.top-bar-right {\n  float: right; }\n\n.hide {\n  display: none !important; }\n\n.invisible {\n  visibility: hidden; }\n\n@media screen and (max-width: 39.9375em) {\n  .hide-for-small-only {\n    display: none !important; } }\n\n@media screen and (max-width: 0em), screen and (min-width: 40em) {\n  .show-for-small-only {\n    display: none !important; } }\n\n@media print, screen and (min-width: 40em) {\n  .hide-for-medium {\n    display: none !important; } }\n\n@media screen and (max-width: 39.9375em) {\n  .show-for-medium {\n    display: none !important; } }\n\n@media screen and (min-width: 40em) and (max-width: 63.9375em) {\n  .hide-for-medium-only {\n    display: none !important; } }\n\n@media screen and (max-width: 39.9375em), screen and (min-width: 64em) {\n  .show-for-medium-only {\n    display: none !important; } }\n\n@media print, screen and (min-width: 64em) {\n  .hide-for-large {\n    display: none !important; } }\n\n@media screen and (max-width: 63.9375em) {\n  .show-for-large {\n    display: none !important; } }\n\n@media screen and (min-width: 64em) and (max-width: 74.9375em) {\n  .hide-for-large-only {\n    display: none !important; } }\n\n@media screen and (max-width: 63.9375em), screen and (min-width: 75em) {\n  .show-for-large-only {\n    display: none !important; } }\n\n.show-for-sr,\n.show-on-focus {\n  position: absolute !important;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0); }\n\n.show-on-focus:active, .show-on-focus:focus {\n  position: static !important;\n  width: auto;\n  height: auto;\n  overflow: visible;\n  clip: auto; }\n\n.show-for-landscape,\n.hide-for-portrait {\n  display: block !important; }\n  @media screen and (orientation: landscape) {\n    .show-for-landscape,\n    .hide-for-portrait {\n      display: block !important; } }\n  @media screen and (orientation: portrait) {\n    .show-for-landscape,\n    .hide-for-portrait {\n      display: none !important; } }\n\n.hide-for-landscape,\n.show-for-portrait {\n  display: none !important; }\n  @media screen and (orientation: landscape) {\n    .hide-for-landscape,\n    .show-for-portrait {\n      display: none !important; } }\n  @media screen and (orientation: portrait) {\n    .hide-for-landscape,\n    .show-for-portrait {\n      display: block !important; } }\n\n.float-left {\n  float: left !important; }\n\n.float-right {\n  float: right !important; }\n\n.float-center {\n  display: block;\n  margin-right: auto;\n  margin-left: auto; }\n\n.clearfix::before, .clearfix::after {\n  display: table;\n  content: ' '; }\n\n.clearfix::after {\n  clear: both; }\n\n.container {\n  background-color: #e6e6e6;\n  border: 1px solid #eee;\n  border-radius: 5px;\n  padding: 0;\n  margin-bottom: 2rem; }\n\n.container__header {\n  border-bottom: 1px solid #eee;\n  padding: 1rem; }\n  .container__header label {\n    cursor: pointer;\n    font-size: 1rem; }\n  .container__header > :last-child {\n    align-items: center;\n    display: flex; }\n\n.container__message {\n  color: #aaa;\n  margin: 2rem auto;\n  text-align: center; }\n\n.container__footer {\n  padding: 1rem 1rem 0 1rem;\n  border-top: 1px solid #eee; }\n\n.page-title {\n  text-align: center;\n  padding: 2rem 0;\n  margin: 0; }\n\n.todo {\n  display: flex;\n  cursor: pointer;\n  align-items: center;\n  padding: 1rem;\n  transition: background .3s ease; }\n  .todo p, .todo input {\n    margin: 0; }\n  .todo > :first-child {\n    margin-right: 1rem; }\n  .todo:hover {\n    background-color: #f0f0f0; }\n\n.todo__subtext {\n  color: #999; }\n\n.todo-completed p, .todo-completed .todo__subtext {\n  color: #aaa;\n  text-decoration: line-through; }\n", ""]);
+
+	// exports
+
+
+/***/ },
+/* 458 */
+/***/ function(module, exports) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	// css base code, injected by the css-loader
+	module.exports = function() {
+		var list = [];
+
+		// return the list of modules as css string
+		list.toString = function toString() {
+			var result = [];
+			for(var i = 0; i < this.length; i++) {
+				var item = this[i];
+				if(item[2]) {
+					result.push("@media " + item[2] + "{" + item[1] + "}");
+				} else {
+					result.push(item[1]);
+				}
+			}
+			return result.join("");
+		};
+
+		// import a list of modules into the list
+		list.i = function(modules, mediaQuery) {
+			if(typeof modules === "string")
+				modules = [[null, modules, ""]];
+			var alreadyImportedModules = {};
+			for(var i = 0; i < this.length; i++) {
+				var id = this[i][0];
+				if(typeof id === "number")
+					alreadyImportedModules[id] = true;
+			}
+			for(i = 0; i < modules.length; i++) {
+				var item = modules[i];
+				// skip already imported module
+				// this implementation is not 100% perfect for weird media query combinations
+				//  when a module is imported multiple times with different media queries.
+				//  I hope this will never occur (Hey this way we have smaller bundles)
+				if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+					if(mediaQuery && !item[2]) {
+						item[2] = mediaQuery;
+					} else if(mediaQuery) {
+						item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+					}
+					list.push(item);
+				}
+			}
+		};
+		return list;
+	};
+
+
+/***/ },
+/* 459 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	var stylesInDom = {},
+		memoize = function(fn) {
+			var memo;
+			return function () {
+				if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+				return memo;
+			};
+		},
+		isOldIE = memoize(function() {
+			return /msie [6-9]\b/.test(window.navigator.userAgent.toLowerCase());
+		}),
+		getHeadElement = memoize(function () {
+			return document.head || document.getElementsByTagName("head")[0];
+		}),
+		singletonElement = null,
+		singletonCounter = 0,
+		styleElementsInsertedAtTop = [];
+
+	module.exports = function(list, options) {
+		if(false) {
+			if(typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+		}
+
+		options = options || {};
+		// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+		// tags it will allow on a page
+		if (typeof options.singleton === "undefined") options.singleton = isOldIE();
+
+		// By default, add <style> tags to the bottom of <head>.
+		if (typeof options.insertAt === "undefined") options.insertAt = "bottom";
+
+		var styles = listToStyles(list);
+		addStylesToDom(styles, options);
+
+		return function update(newList) {
+			var mayRemove = [];
+			for(var i = 0; i < styles.length; i++) {
+				var item = styles[i];
+				var domStyle = stylesInDom[item.id];
+				domStyle.refs--;
+				mayRemove.push(domStyle);
+			}
+			if(newList) {
+				var newStyles = listToStyles(newList);
+				addStylesToDom(newStyles, options);
+			}
+			for(var i = 0; i < mayRemove.length; i++) {
+				var domStyle = mayRemove[i];
+				if(domStyle.refs === 0) {
+					for(var j = 0; j < domStyle.parts.length; j++)
+						domStyle.parts[j]();
+					delete stylesInDom[domStyle.id];
+				}
+			}
+		};
+	}
+
+	function addStylesToDom(styles, options) {
+		for(var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+			if(domStyle) {
+				domStyle.refs++;
+				for(var j = 0; j < domStyle.parts.length; j++) {
+					domStyle.parts[j](item.parts[j]);
+				}
+				for(; j < item.parts.length; j++) {
+					domStyle.parts.push(addStyle(item.parts[j], options));
+				}
+			} else {
+				var parts = [];
+				for(var j = 0; j < item.parts.length; j++) {
+					parts.push(addStyle(item.parts[j], options));
+				}
+				stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+			}
+		}
+	}
+
+	function listToStyles(list) {
+		var styles = [];
+		var newStyles = {};
+		for(var i = 0; i < list.length; i++) {
+			var item = list[i];
+			var id = item[0];
+			var css = item[1];
+			var media = item[2];
+			var sourceMap = item[3];
+			var part = {css: css, media: media, sourceMap: sourceMap};
+			if(!newStyles[id])
+				styles.push(newStyles[id] = {id: id, parts: [part]});
+			else
+				newStyles[id].parts.push(part);
+		}
+		return styles;
+	}
+
+	function insertStyleElement(options, styleElement) {
+		var head = getHeadElement();
+		var lastStyleElementInsertedAtTop = styleElementsInsertedAtTop[styleElementsInsertedAtTop.length - 1];
+		if (options.insertAt === "top") {
+			if(!lastStyleElementInsertedAtTop) {
+				head.insertBefore(styleElement, head.firstChild);
+			} else if(lastStyleElementInsertedAtTop.nextSibling) {
+				head.insertBefore(styleElement, lastStyleElementInsertedAtTop.nextSibling);
+			} else {
+				head.appendChild(styleElement);
+			}
+			styleElementsInsertedAtTop.push(styleElement);
+		} else if (options.insertAt === "bottom") {
+			head.appendChild(styleElement);
+		} else {
+			throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
+		}
+	}
+
+	function removeStyleElement(styleElement) {
+		styleElement.parentNode.removeChild(styleElement);
+		var idx = styleElementsInsertedAtTop.indexOf(styleElement);
+		if(idx >= 0) {
+			styleElementsInsertedAtTop.splice(idx, 1);
+		}
+	}
+
+	function createStyleElement(options) {
+		var styleElement = document.createElement("style");
+		styleElement.type = "text/css";
+		insertStyleElement(options, styleElement);
+		return styleElement;
+	}
+
+	function createLinkElement(options) {
+		var linkElement = document.createElement("link");
+		linkElement.rel = "stylesheet";
+		insertStyleElement(options, linkElement);
+		return linkElement;
+	}
+
+	function addStyle(obj, options) {
+		var styleElement, update, remove;
+
+		if (options.singleton) {
+			var styleIndex = singletonCounter++;
+			styleElement = singletonElement || (singletonElement = createStyleElement(options));
+			update = applyToSingletonTag.bind(null, styleElement, styleIndex, false);
+			remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true);
+		} else if(obj.sourceMap &&
+			typeof URL === "function" &&
+			typeof URL.createObjectURL === "function" &&
+			typeof URL.revokeObjectURL === "function" &&
+			typeof Blob === "function" &&
+			typeof btoa === "function") {
+			styleElement = createLinkElement(options);
+			update = updateLink.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+				if(styleElement.href)
+					URL.revokeObjectURL(styleElement.href);
+			};
+		} else {
+			styleElement = createStyleElement(options);
+			update = applyToTag.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+			};
+		}
+
+		update(obj);
+
+		return function updateStyle(newObj) {
+			if(newObj) {
+				if(newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap)
+					return;
+				update(obj = newObj);
+			} else {
+				remove();
+			}
+		};
+	}
+
+	var replaceText = (function () {
+		var textStore = [];
+
+		return function (index, replacement) {
+			textStore[index] = replacement;
+			return textStore.filter(Boolean).join('\n');
+		};
+	})();
+
+	function applyToSingletonTag(styleElement, index, remove, obj) {
+		var css = remove ? "" : obj.css;
+
+		if (styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = replaceText(index, css);
+		} else {
+			var cssNode = document.createTextNode(css);
+			var childNodes = styleElement.childNodes;
+			if (childNodes[index]) styleElement.removeChild(childNodes[index]);
+			if (childNodes.length) {
+				styleElement.insertBefore(cssNode, childNodes[index]);
+			} else {
+				styleElement.appendChild(cssNode);
+			}
+		}
+	}
+
+	function applyToTag(styleElement, obj) {
+		var css = obj.css;
+		var media = obj.media;
+
+		if(media) {
+			styleElement.setAttribute("media", media)
+		}
+
+		if(styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = css;
+		} else {
+			while(styleElement.firstChild) {
+				styleElement.removeChild(styleElement.firstChild);
+			}
+			styleElement.appendChild(document.createTextNode(css));
+		}
+	}
+
+	function updateLink(linkElement, obj) {
+		var css = obj.css;
+		var sourceMap = obj.sourceMap;
+
+		if(sourceMap) {
+			// http://stackoverflow.com/a/26603875
+			css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+		}
+
+		var blob = new Blob([css], { type: "text/css" });
+
+		var oldSrc = linkElement.href;
+
+		linkElement.href = URL.createObjectURL(blob);
+
+		if(oldSrc)
+			URL.revokeObjectURL(oldSrc);
+	}
+
 
 /***/ }
 /******/ ]);
